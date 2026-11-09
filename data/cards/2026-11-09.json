@@ -1,0 +1,265 @@
+{
+  "week": "2026-11-09",
+  "generatedAt": "2026-11-09T00:00:00Z",
+  "pool": 88,
+  "cards": [
+    {
+      "id": "2026-11-09__q01",
+      "kind": "recall",
+      "format": "short",
+      "citekeys": [
+        "bermeoAidNotOil2016"
+      ],
+      "paper": "Bermeo (2016)",
+      "prompt": "Bermeo argues foreign aid should not be pooled with oil as \"nontax revenue.\" What is the core mechanism, and what role do donors play in it?",
+      "answer": "Donors buy policy favors with a mix of fungible and nonfungible aid. Fungible aid buys more per dollar but entrenches the recipient government, which costs a democracy-minded donor. When the recipient's strategic value falls (end of the Cold War) or the donor cares more about democracy, the package shifts toward nonfungible aid, so aid stops propping up dictators. Oil has no donor making this choice.",
+      "explanation": "Key contestable assumption: donors can actually control how fungible aid is. The fungibility mechanism is never measured, only inferred from the aid–oil contrast.",
+      "source": "zotero_library/bermeoAidNotOil2016.md · pp. 7–13",
+      "topics": [
+        "Foreign_Aid",
+        "Resource_Curse_and_Rentier_States",
+        "Democratization_and_Regimes"
+      ],
+      "citation": "Bermeo, S. 2016. \"Aid Is Not Oil.\" International Organization 70(1)."
+    },
+    {
+      "id": "2026-11-09__q02",
+      "kind": "evidence",
+      "format": "mc",
+      "citekeys": [
+        "bermeoAidNotOil2016"
+      ],
+      "paper": "Bermeo (2016)",
+      "prompt": "Which empirical pattern does Bermeo report?",
+      "options": [
+        "Aid goes with less democratic change only during the Cold War and, after it, only in strategically important recipients; oil shows no such pattern",
+        "Aid and oil both inhibit democratic change in every period",
+        "Aid inhibits democratic change only after the Cold War, while oil inhibits it throughout",
+        "Neither aid nor oil is related to democratic change once country fixed effects are added"
+      ],
+      "correct": 0,
+      "answer": "Aid inhibits democratic change only in the Cold War and, afterward, only in strategically important recipients. Oil shows no change over time or across recipients.",
+      "explanation": "These are H1A/H2A (aid) versus H1B/H2B (oil). The contrast is what lets her argue aid is different from oil.",
+      "source": "zotero_library/bermeoAidNotOil2016.md · pp. 13–14",
+      "topics": [
+        "Foreign_Aid",
+        "Resource_Curse_and_Rentier_States",
+        "Democratization_and_Regimes"
+      ],
+      "citation": "Bermeo, S. 2016. \"Aid Is Not Oil.\" International Organization 70(1)."
+    },
+    {
+      "id": "2026-11-09__q03",
+      "kind": "synthesis",
+      "format": "short",
+      "citekeys": [
+        "morrisonOilNontaxRevenue2009",
+        "bermeoAidNotOil2016"
+      ],
+      "paper": "Morrison (2009) vs. Bermeo (2016)",
+      "prompt": "Morrison and Bermeo disagree about whether aid behaves like oil. What assumption divides them, and what does Bermeo's evidence do to Morrison's result?",
+      "answer": "Morrison assumes nontax revenue is fully fungible and controlled by the incumbent, so its source does not matter and aid, oil and borrowing all stabilize regimes. Bermeo says donors control how fungible aid is. Her evidence implies the aid component of Morrison's effect matters only before 1989.",
+      "explanation": "This is the core debate in the week 10 aid and resource curse readings. Morrison builds on the redistributive theory of regime change (Boix; Acemoglu and Robinson).",
+      "source": "zotero_library/morrisonOilNontaxRevenue2009.md; Concepts/Fungible and nonfungible aid.md",
+      "topics": [
+        "Taxation_and_Fiscal_Contract",
+        "Redistribution_Preferences",
+        "Resource_Curse_and_Rentier_States",
+        "Foreign_Aid",
+        "Democratization_and_Regimes"
+      ],
+      "citation": "Morrison, K. 2009. \"Oil, Nontax Revenue, and the Redistributional Foundations of Regime Stability.\" International Organization 63(1). / Bermeo, S. 2016. \"Aid Is Not Oil.\" International Organization 70(1)."
+    },
+    {
+      "id": "2026-11-09__q04",
+      "kind": "evidence",
+      "format": "short",
+      "citekeys": [
+        "morrisonOilNontaxRevenue2009"
+      ],
+      "paper": "Morrison (2009)",
+      "prompt": "How does Morrison measure nontax revenue, and why is that a problem for his mechanism tests?",
+      "answer": "Nontax revenue per capita is total government expenditure minus tax revenue (IMF GFS, 1973–2001, 118 countries). So it includes borrowing, and regressions of spending or taxes on it are close to accounting identities.",
+      "explanation": "It correlates only 0.18 with oil exports/GDP, so it is not mainly an oil measure either.",
+      "source": "zotero_library/morrisonOilNontaxRevenue2009.md · pp. 114–116",
+      "topics": [
+        "Taxation_and_Fiscal_Contract",
+        "Redistribution_Preferences",
+        "Resource_Curse_and_Rentier_States"
+      ],
+      "citation": "Morrison, K. 2009. \"Oil, Nontax Revenue, and the Redistributional Foundations of Regime Stability.\" International Organization 63(1)."
+    },
+    {
+      "id": "2026-11-09__q05",
+      "kind": "concept",
+      "format": "mc",
+      "citekeys": [
+        "delacuestaOwningItAccountability2022"
+      ],
+      "paper": "de la Cuesta et al. (2022)",
+      "prompt": "Which concept is this? Citizens' sense that government money \"belongs to them,\" recognized by the individual rather than by law, which sets the reference point for what they expect to receive.",
+      "options": [
+        "Endowment effect",
+        "Psychological (budget) ownership",
+        "Prebendalism",
+        "Fiscal contract"
+      ],
+      "correct": 1,
+      "answer": "Psychological (budget) ownership.",
+      "explanation": "It comes before loss aversion because it explains where the reference point comes from. Prebendalism is the opposite pole, where officials are seen as owning revenue.",
+      "source": "Concepts/Psychological ownership (budget ownership).md · p. 305",
+      "topics": [
+        "Accountability_and_Corruption",
+        "Taxation_and_Fiscal_Contract",
+        "Resource_Curse_and_Rentier_States"
+      ],
+      "citation": "de la Cuesta et al. 2022. \"Owning It: Accountability and Citizens' Ownership over Oil, Aid, and Taxes.\" Journal of Politics 84(1)."
+    },
+    {
+      "id": "2026-11-09__q06",
+      "kind": "evidence",
+      "format": "short",
+      "citekeys": [
+        "delacuestaOwningItAccountability2022"
+      ],
+      "paper": "de la Cuesta et al. (2022)",
+      "prompt": "What did the Uganda national survey experiment find, and why does that weaken the paper's main claim?",
+      "answer": "Personalized aid and oil revenue information raised ownership (+0.31 and +0.33 SD) but had no average effect on the costly accountability index (+0.04 and +0.02 SD, not significant). Positive results come only from a low-efficacy subgroup (p ≈ .07) and mediation estimates. So the ownership-to-accountability link is shown mainly in one-shot lab games, which may not map onto voting or protest.",
+      "explanation": "The lab games (Kampala, 1,032 citizens) used a modified ultimatum game where punishment is purely expressive.",
+      "source": "zotero_library/delacuestaOwningItAccountability2022.md · pp. 313–316",
+      "topics": [
+        "Accountability_and_Corruption",
+        "Taxation_and_Fiscal_Contract",
+        "Resource_Curse_and_Rentier_States"
+      ],
+      "citation": "de la Cuesta et al. 2022. \"Owning It: Accountability and Citizens' Ownership over Oil, Aid, and Taxes.\" Journal of Politics 84(1)."
+    },
+    {
+      "id": "2026-11-09__q07",
+      "kind": "evidence",
+      "format": "short",
+      "citekeys": [
+        "carnegieForeignAidHuman2017"
+      ],
+      "paper": "Carnegie and Marinov (2017)",
+      "prompt": "What instrument do Carnegie and Marinov use for EU aid, and what are its two main weaknesses?",
+      "answer": "Whether a recipient's former colonizer held the rotating EU Council presidency (second half of year t−2), which follows a 1965 rotation rule. Weaknesses: the instrument is borderline weak (F ≈ 10), and the exclusion restriction may fail since the presidency could help former colonies through bilateral aid, trade or diplomacy, not only EU aid.",
+      "explanation": "Results: aid raises CIRI and Polity, but effects peak in one to three years and are gone by year five. Conditionality is inferred from timing, not observed.",
+      "source": "zotero_library/carnegieForeignAidHuman2017.md · pp. 674–680",
+      "topics": [
+        "Foreign_Aid",
+        "Democratization_and_Regimes",
+        "International_Institutions"
+      ],
+      "citation": "Carnegie, A. and Marinov, N. 2017. \"Foreign Aid, Human Rights, and Democracy Promotion.\" AJPS 61(3)."
+    },
+    {
+      "id": "2026-11-09__q08",
+      "kind": "recall",
+      "format": "short",
+      "citekeys": [
+        "AnxietyEnthusiasmVote"
+      ],
+      "paper": "Marcus and MacKuen (1993)",
+      "prompt": "What do anxiety and enthusiasm each do in Marcus and MacKuen, and what is the main measurement problem?",
+      "answer": "Enthusiasm drives candidate preference and campaign involvement. Anxiety increases learning and lowers reliance on partisanship. They are separate dimensions, not two ends of one valence scale. Problem: the 1980 ANES anxiety items include angry and disgusted, so the dimension pools anxiety with anger and disgust.",
+      "explanation": "Founding paper of affective intelligence theory. Evidence is observational (1980 ANES panel, 1988 Missouri surveys).",
+      "source": "zotero_library/AnxietyEnthusiasmVote.md · pp. 673–680",
+      "topics": [
+        "Emotions_and_Politics",
+        "Opinion_Formation_and_Information",
+        "Partisanship_and_Ideology"
+      ],
+      "citation": "Marcus, G. and MacKuen, M. 1993. \"Anxiety, Enthusiasm, and the Vote.\" APSR 87(3)."
+    },
+    {
+      "id": "2026-11-09__q09",
+      "kind": "synthesis",
+      "format": "mc",
+      "citekeys": [
+        "braderWhatTriggersPublic2008",
+        "AnxietyEnthusiasmVote"
+      ],
+      "paper": "Brader et al. (2008)",
+      "prompt": "How does Brader et al. (2008) relate to affective intelligence theory?",
+      "options": [
+        "It rejects the two-system model and argues for a single valence dimension",
+        "It finds perceived harm, not anxiety, mediates the effect of group cues",
+        "It accepts the anxiety mechanism but rejects the normative optimism: anxiety makes people open to whatever information is at hand, including skewed cues",
+        "It shows enthusiasm, not anxiety, drives opposition to immigration"
+      ],
+      "correct": 2,
+      "answer": "It keeps the mechanism and drops the optimism. Latino cues in cost news raised anxiety, which mediated opposition; perceived harm did not.",
+      "explanation": "Limitation: their anxiety scale is anxious + worried + angry, so it shows negative emotion, not anxiety specifically. Mediation is Baron–Kenny with Sobel tests on a post-treatment mediator.",
+      "source": "zotero_library/braderWhatTriggersPublic2008.md · pp. 962–971",
+      "topics": [
+        "Emotions_and_Politics",
+        "Migration",
+        "Opinion_Formation_and_Information",
+        "Partisanship_and_Ideology"
+      ],
+      "citation": "Brader, T., Valentino, N. and Suhay, E. 2008. \"What Triggers Public Opposition to Immigration?\" AJPS 52(4). / Marcus, G. and MacKuen, M. 1993. \"Anxiety, Enthusiasm, and the Vote.\" APSR 87(3)."
+    },
+    {
+      "id": "2026-11-09__q10",
+      "kind": "evidence",
+      "format": "short",
+      "citekeys": [
+        "jensenDemocraticGovernanceMultinational2003"
+      ],
+      "paper": "Jensen (2003)",
+      "prompt": "Through which two mechanisms does Jensen say democracy attracts FDI, and why can't his test separate them?",
+      "answer": "Veto players make policy harder to reverse, and audience costs let voters punish leaders who break promises to investors. He uses Polity, which bundles both, and tests credibility only indirectly through sovereign credit ratings.",
+      "explanation": "Contestable assumption: foreign investors don't vote, and populists may gain from going after them (Li and Resnick 2003).",
+      "source": "zotero_library/jensenDemocraticGovernanceMultinational2003.md · pp. 594–609",
+      "topics": [
+        "FDI",
+        "Democratization_and_Regimes"
+      ],
+      "citation": "Jensen, N. 2003. \"Democratic Governance and Multinational Corporations.\" International Organization 57(3)."
+    },
+    {
+      "id": "2026-11-09__q11",
+      "kind": "recall",
+      "format": "short",
+      "citekeys": [
+        "posnerPoliticalSalienceCultural2004"
+      ],
+      "paper": "Posner (2004)",
+      "prompt": "Why is the Chewa–Tumbuka cleavage salient in Malawi but not Zambia, and what is the main limit of the design?",
+      "answer": "Each group is large relative to the national arena in Malawi (28% and 12%) but small in Zambia (7% and 4%), so politicians mobilize it only where it defines viable coalitions. Cultural differences are perceived equally on both sides. Limit: one cross-border contrast of four villages (N = 180); group size never varies within the design and can't be separated from Banda's long Chewa project.",
+      "explanation": "Assumes the nation is the relevant arena and that elites pick cleavages instrumentally.",
+      "source": "zotero_library/posnerPoliticalSalienceCultural2004.md · pp. 529–541",
+      "topics": [
+        "Nationalism_and_Identity",
+        "Distributive_Politics"
+      ],
+      "citation": "Posner, D. 2004. \"The Political Salience of Cultural Difference.\" APSR 98(4)."
+    },
+    {
+      "id": "2026-11-09__q12",
+      "kind": "recall",
+      "format": "mc",
+      "citekeys": [
+        "kingHowChineseGovernment2017"
+      ],
+      "paper": "King et al. (2017)",
+      "prompt": "What do King, Pan and Roberts find most 50c party posts do?",
+      "options": [
+        "Argue for government policy and rebut critics",
+        "Taunt foreign countries",
+        "Cheerlead with non-argumentative praise, in bursts timed around events with collective action potential",
+        "Report and attack individual activists"
+      ],
+      "correct": 2,
+      "answer": "Non-argumentative cheerleading in bursts around events with collective action potential. The strategy is distraction, not argument.",
+      "explanation": "Implication: the regime tolerates common knowledge of grievances but suppresses common knowledge of collective action. Distraction's effectiveness is not measured.",
+      "source": "zotero_library/kingHowChineseGovernment2017.md",
+      "topics": [
+        "Authoritarian_Control",
+        "Digital_Technology_and_Politics"
+      ],
+      "citation": "King, G., Pan, J. and Roberts, M. 2017. \"How the Chinese Government Fabricates Social Media Posts.\" APSR 111(3)."
+    }
+  ]
+}

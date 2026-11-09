@@ -185,10 +185,21 @@ def build(time, face='fbo', with_bot=True):
     if time!='night' and with_bot: s.rect(68,120,5,4,'#B08D4A'); s.rect(73,120,3,1,'#B08D4A'); s.px(76,119,'#B08D4A'); s.rect(69,118,3,1,'#8A6A2E')
     return grade(s)
 
+MUL={'morning':(1.06,1.03,.98),'golden':(1.0,.84,.7),'night':(.34,.36,.5)}
+ADD={'morning':(6,6,4),'golden':(12,0,6),'night':(4,6,16)}
+def grade_sprite(im,t):
+    # same band multipliers as grade(), for layers drawn over the baked room; the face screen stays lit
+    out=im.copy(); p=out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r,g,b,a=p[x,y]
+            if a and (r,g,b) not in (hx('#9FE1CB'),hx('#085041')):
+                p[x,y]=tuple(max(0,min(255,int(v*m+d))) for v,m,d in zip((r,g,b),MUL[t],ADD[t]))+(a,)
+    return out
+
 def grade(s):
     p=s.im.load(); t=s.t
-    mul={'morning':(1.06,1.03,.98),'golden':(1.0,.84,.7),'night':(.34,.36,.5)}[t]
-    add={'morning':(6,6,4),'golden':(12,0,6),'night':(4,6,16)}[t]
+    mul,add=MUL[t],ADD[t]
     for y in range(H):
         for x in range(W):
             if (x,y) in s.sky or (x,y) in s.lit: continue
@@ -226,13 +237,18 @@ def grade(s):
                 if 0<=x<W: r,g,b=p[x,y]; p[x,y]=(min(255,r+10),min(255,g+12),min(255,b+22))
     return s.im
 
-bg=build('morning',with_bot=False); bg.save('f_morning_bg.png')
+for t in ('morning','golden','night'):
+    build(t,with_bot=False).save(f'f_{t}_bg.png')
 for n in ('fbo','fbb','fbw','fbn'):
     im=bot_img(n); im.save(f'fr_{n}.png')
 can=Image.new('RGBA',(9,6),(0,0,0,0))
 for x,y,c in [(0,2,'#B08D4A'),(1,2,'#B08D4A'),(2,2,'#B08D4A'),(3,2,'#B08D4A'),(4,2,'#B08D4A'),(0,3,'#B08D4A'),(1,3,'#D4B06A'),(2,3,'#B08D4A'),(3,3,'#B08D4A'),(4,3,'#8A6A2E'),(0,4,'#B08D4A'),(1,4,'#B08D4A'),(2,4,'#B08D4A'),(3,4,'#B08D4A'),(4,4,'#8A6A2E'),(0,5,'#8A6A2E'),(1,5,'#8A6A2E'),(2,5,'#8A6A2E'),(3,5,'#8A6A2E'),(5,2,'#B08D4A'),(6,1,'#B08D4A'),(7,0,'#B08D4A'),(8,0,'#D4B06A'),(1,1,'#8A6A2E'),(2,0,'#8A6A2E'),(3,1,'#8A6A2E')]:
     can.putpixel((x,y),hx(c)+(255,))
 can.save('fr_can.png')
+# app layers, graded per band
+for t,names in (('morning',('fbo','fbb')),('golden',('fbo','fbb')),('night',('fbn',))):
+    for n in names: grade_sprite(bot_img(n),t).save(f'fr_{t}_{n}.png')
+    if t!='night': grade_sprite(can,t).save(f'fr_{t}_can.png')
 for t in ('morning','golden','night'):
     im=build(t); im.save(f'f_{t}.png'); im.resize((W*4,H*4),Image.NEAREST).save(f'f_{t}@4.png')
 ims=[Image.open(f'f_{t}@4.png') for t in ('morning','golden','night')]

@@ -154,7 +154,8 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 ### 5.4 Daily cards
 - 3 cards per day, fixed for the day once picked (seeded by the date).
 - Pick reviews first: weight not yet 6, partly 4, knew it 1, times min(4, 1 + days since last seen / 3). Skip knew-it cards seen in the last 3 days. Prefer different papers.
-- Fill remaining slots with unanswered cards from all card files (weekly sets and batches), newest file first, in order within each file.
+- Reserve one of the 3 slots for an unanswered card whenever one exists, so reviews cannot crowd out new cards.
+- Fill the reserved slot and any remaining slots with unanswered cards from all card files (weekly sets and batches), newest file first, in order within each file.
 - If nothing is due, the day counts as done with no water.
 
 ### 5.5 Streak

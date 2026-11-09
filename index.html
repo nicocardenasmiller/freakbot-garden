@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17110D">
+  <title>Freakbot</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <div class="titlerow">
+        <h1>The Conservatory</h1>
+        <span id="clock"></span>
+      </div>
+      <button id="strip" class="smallcaps" aria-label="Stats. Open settings">
+        <span id="stats"></span><span id="sync-flag"></span>
+      </button>
+    </header>
+    <main id="view"></main>
+    <div id="action"></div>
+    <nav class="tabs">
+      <button data-tab="garden">Garden</button>
+      <button data-tab="cards">Cards</button>
+      <button data-tab="herbarium">Herbarium</button>
+      <button data-tab="journal">Journal</button>
+    </nav>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
