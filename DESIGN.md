@@ -1,6 +1,6 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.1 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7)
+Version 1.2 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
@@ -47,8 +47,9 @@ Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (b
 
 Layout rules (phone 390 px wide reference):
 - Top: title "The Conservatory" (Cormorant Garamond 26/600) and local date/time (EB Garamond italic). Under it a thin stat strip in small caps: Water · Streak · Plants.
-- Scene: 388 × 560 px (art 97 × 140 at 4×), centred, `image-rendering: pixelated`. The scene never scrolls.
+- Scene: 388 × 560 px (art 97 × 140 at 4×), centred, `image-rendering: pixelated`. The scene never scrolls. On phones narrower than 388 px (the Galaxy S25 is 360 px) keep 4× and trim the side edges evenly.
 - Bottom: one primary action, then the 4-tab nav. Nothing else.
+- Settings (the sync token) opens by tapping the stat strip. The strip also shows the "not syncing" state.
 - Freakbot's speech is a paper slip over the scene: parchment fill, VT323 19 px, tilted ±1.5°, auto-hides after ~6 s, tap to dismiss.
 
 ---
@@ -78,7 +79,7 @@ A small Victorian conservatory that doubles as a study. Fixed composition (do no
 | Golden | 17:00 to 21:00 | amber to rose to plum | long warm shafts, lamp on |
 | Night | 21:00 to 05:00 | navy, stars, crescent moon | lamp + candle glows, moonlight patch, Freakbot asleep |
 
-Implementation: render the room once per band (pre-baked PNGs) plus Freakbot and plants as separate layers so they can move. Plants are graded to match the band (multipliers in `art/final.py → grade()`).
+Implementation: render the room once per band (pre-baked PNGs) plus Freakbot and plants as separate layers so they can move. Plants are graded to match the band (multipliers in `art/final.py → grade()`). Until the Day art exists (Phase 3), the Day band shows the morning room.
 
 ### 4.4 Palette (UI tokens)
 | Token | Hex | Use |
@@ -153,11 +154,11 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 ### 5.4 Daily cards
 - 3 cards per day, fixed for the day once picked (seeded by the date).
 - Pick reviews first: weight not yet 6, partly 4, knew it 1, times min(4, 1 + days since last seen / 3). Skip knew-it cards seen in the last 3 days. Prefer different papers.
-- Fill remaining slots with unanswered cards from the newest weekly set, in order.
+- Fill remaining slots with unanswered cards from all card files (weekly sets and batches), newest file first, in order within each file.
 - If nothing is due, the day counts as done with no water.
 
 ### 5.5 Streak
-- A day counts when all 3 cards are graded (local date).
+- A day counts when every card picked for it is graded (local date), even if fewer than 3 were available. A day with nothing due also counts, with no water.
 - Freezes: +1 at every 7-day streak, max 2; a missed day consumes one automatically.
 - Milestones (days 1, 7, 14, 30, 60) unlock room details instead of scraps: e.g. rug fringe, second candle, framed print, gramophone, globe. List lives in `data/milestones.json`.
 
@@ -213,7 +214,7 @@ Felix accepted that questions are public (they summarize published papers).
 {
   "v": 1,
   "responses": { "<card id>": { "grade": "got|partial|missed", "at": "ISO", "day": "YYYY-MM-DD", "choice": 0, "text": "..." } },
-  "days": { "YYYY-MM-DD": { "cards": ["<card id>"], "done": true, "frozen": false, "water": 26 } },
+  "days": { "YYYY-MM-DD": { "cards": ["<card id>"], "done": true, "frozen": false, "water": 26, "at": "ISO" } },
   "profile": { "streak": 0, "best": 0, "freezes": 0, "water": 0, "daysDone": 0, "lastDay": null, "unlocked": [] }
 }
 ```
@@ -221,7 +222,7 @@ Keep only the latest response per card in `responses`; append history to `histor
 
 ### 6.5 Sync
 - Writes go to localStorage first (works offline), then to GitHub through the Contents API (`PUT /repos/{owner}/freakbot-garden-save/contents/save.json` with the file `sha`).
-- On conflict (sha mismatch): fetch, merge by taking the newer `at` per card and per day, recompute profile, retry once.
+- On conflict (sha mismatch): fetch, merge by taking the newer `at` per card and per day (a done day always beats an unfinished one), recompute profile, retry once.
 - Auth: a fine-grained personal access token with Contents read/write on `freakbot-garden-save` only. Entered once per device in Settings, stored in localStorage, never committed, never logged. Show "not syncing" state clearly when missing or rejected.
 
 ---
@@ -267,6 +268,7 @@ Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"):
 2. More than 12 topics: second room, or only comps topics get plants.
 3. Which topics map to which species (default automatic).
 4. Whether the Friday quiz stays 12 cards or shrinks now that dailies exist.
+5. The sync token sits in localStorage on the `nicocardenasmiller.github.io` origin, which other Pages sites on that account share, so scripts on them could read it. Risk accepted for now. Option: move the app to its own subdomain.
 
 ## 10. Assets in this bundle
 | Path | What |
