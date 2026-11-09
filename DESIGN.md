@@ -173,7 +173,7 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 ### 6.1 Stack
 - Static site, no framework required (vanilla JS modules) or a small Vite + Preact build. Keep the bundle under 300 KB excluding art.
 - PWA: `manifest.webmanifest` (name "Freakbot", icon from the sprite, `display: standalone`, theme #17110D) and a service worker that caches the shell, art and current cards for offline use.
-- Hosting: GitHub Pages from the public repo.
+- Hosting: GitHub Pages from the public repo, at `https://freakbot.nicolascardenasmiller.com/`.
 
 ### 6.2 Repos
 | Repo | Visibility | Holds |
@@ -269,7 +269,7 @@ Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"):
 2. More than 12 topics: second room, or only comps topics get plants.
 3. Which topics map to which species (default automatic).
 4. Whether the Friday quiz stays 12 cards or shrinks now that dailies exist.
-5. The sync token sits in localStorage on the `nicocardenasmiller.github.io` origin, which other Pages sites on that account share, so scripts on them could read it. Risk accepted for now. Option: move the app to its own subdomain.
+5. Resolved: the app moved to its own subdomain, `freakbot.nicolascardenasmiller.com`, so the sync token in localStorage is no longer shared with `nicolascardenasmiller.com` and the other Pages sites served from it.
 
 ## 10. Assets in this bundle
 | Path | What |
