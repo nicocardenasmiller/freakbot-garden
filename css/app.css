@@ -302,3 +302,10 @@ body[data-tab='herbarium'] #action:empty, body[data-tab='journal'] #action:empty
 .room-arrow:first-child { left: 0; }
 .room-arrow:last-child { right: 0; }
 .app-version { margin-top: 8px; }
+
+/* No arrows: swipe, drag or arrow keys. The room's name shows on arrival and fades in steps. */
+.room-label { position: absolute; left: 50%; bottom: 10px; z-index: 145; transform: translateX(-50%); white-space: nowrap; pointer-events: none; animation: room-name 2600ms steps(1) forwards; }
+@keyframes room-name { 0% { opacity: 1; } 62% { opacity: 0.75; } 72% { opacity: 0.5; } 82% { opacity: 0.25; } 92%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .room-label { animation: none; } }
+.roaming .blink { display: none; }
+.bot::after { content: ''; position: absolute; z-index: -1; left: 20px; top: 122px; width: 88px; height: 8px; background: rgba(0, 0, 0, 0.22); }

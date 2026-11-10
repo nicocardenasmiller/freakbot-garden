@@ -98,20 +98,47 @@ function showSlip(scene, text) {
 const frameOf = (band, name) => `art/out/fr_${band}_${name}.png`;
 
 // Now and then he looks around or yawns.
+// He wanders the floor on his own, and now and then looks around or yawns. He keeps his place between redraws.
+const ROAM_MIN = 16;
+const ROAM_MAX = 58;
+let botX = HOME_X;
+
 function idleLife(bot, band) {
+  if (band === 'night') botX = HOME_X;
+  bot.style.left = px(botX);
   if (band === 'night' || reduced()) return;
   const rest = bot.querySelector('.rest');
+  let wait = 20 + Math.floor(Math.random() * 30);
+  let target = null;
+  let wheel = 0;
   const timer = setInterval(() => {
     if (!bot.isConnected) {
       clearInterval(timer);
       return;
     }
     if (bot.classList.contains('moving') || document.visibilityState !== 'visible') return;
-    rest.src = frameOf(band, ['fbL', 'fbR', 'fby'][Math.floor(Math.random() * 3)]);
-    setTimeout(() => {
-      if (!bot.classList.contains('moving')) rest.src = bot.dataset.base;
-    }, 1300);
-  }, 8000);
+    if (target === null) {
+      wait -= 1;
+      if (wait === 12 && Math.random() < 0.5) rest.src = frameOf(band, ['fbL', 'fbR', 'fby'][Math.floor(Math.random() * 3)]);
+      if (wait === 4) rest.src = bot.dataset.base;
+      if (wait > 0) return;
+      // Usually somewhere new, sometimes back to the middle.
+      target = Math.random() < 0.3 ? HOME_X : ROAM_MIN + Math.floor(Math.random() * (ROAM_MAX - ROAM_MIN + 1));
+      if (Math.abs(target - botX) < 6) target = botX < HOME_X ? ROAM_MAX : ROAM_MIN;
+      bot.classList.add('roaming');
+      return;
+    }
+    const side = target > botX ? 'R' : 'L';
+    botX += target > botX ? 1 : -1;
+    wheel += 1;
+    bot.style.left = px(botX);
+    rest.src = frameOf(band, `${wheel % 4 < 2 ? 'fb' : 'fbr'}${side}`);
+    if (botX !== target) return;
+    target = null;
+    wait = 40 + Math.floor(Math.random() * 54);
+    rest.src = bot.dataset.base;
+    bot.classList.remove('roaming');
+  }, TICK_MS);
 }
 
 const MOVES = {
@@ -165,22 +192,53 @@ function poke(scene, bot, band) {
 
 let greeted = false;
 
-function roomNav(ctx, roomCount) {
-  if (roomCount < 2) return null;
+// Rooms change by swipe, mouse drag or the arrow keys. The room's name shows when you arrive, then fades.
+const NAME_MS = 2600;
+let namedRoom = null;
+let namedAt = 0;
+let keyMove = null;
+let draggedAt = 0;
+
+document.addEventListener('keydown', (e) => {
+  if (!keyMove || !document.querySelector('.stage .scene') || document.querySelector('dialog[open]')) return;
+  if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+  if (e.key === 'ArrowLeft') keyMove(-1);
+  if (e.key === 'ArrowRight') keyMove(1);
+});
+
+function roomNav(ctx, roomCount, scene, stage) {
+  if (namedRoom !== ctx.room) {
+    namedRoom = ctx.room;
+    namedAt = Date.now();
+  }
+  // A redraw in the middle of the fade carries on from where it was.
+  const shown = Date.now() - namedAt;
+  if (shown < NAME_MS) {
+    const label = h('span', { class: 'smallcaps room-label' }, ROOMS[ctx.room].label);
+    label.style.animationDelay = `-${shown}ms`;
+    scene.append(label);
+    setTimeout(() => label.remove(), NAME_MS - shown);
+  }
+  keyMove = null;
+  if (roomCount < 2) return;
   const move = (step) => {
     ctx.room = (ctx.room + step + roomCount) % roomCount;
     ctx.refresh();
   };
-  return {
-    move,
-    el: h(
-      'div',
-      { class: 'room-nav' },
-      h('button', { class: 'room-arrow', 'aria-label': 'Previous room', onclick: () => move(-1) }, '‹'),
-      h('span', { class: 'smallcaps room-label' }, ROOMS[ctx.room].label),
-      h('button', { class: 'room-arrow', 'aria-label': 'Next room', onclick: () => move(1) }, '›'),
-    ),
+  keyMove = move;
+  let startX = null;
+  const end = (x, viaMouse) => {
+    if (startX === null) return;
+    const dx = x - startX;
+    startX = null;
+    if (Math.abs(dx) <= 40) return;
+    if (viaMouse) draggedAt = Date.now();
+    move(dx < 0 ? 1 : -1);
   };
+  stage.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', (e) => end(e.changedTouches[0].clientX, false));
+  stage.addEventListener('mousedown', (e) => { startX = e.clientX; });
+  stage.addEventListener('mouseup', (e) => end(e.clientX, true));
 }
 
 // Tap a plant, then tap another plant or an empty spot, in any room, to move it.
@@ -227,7 +285,7 @@ function setupMoving(ctx, scene, plantEls, plants, rooms) {
   });
   // A tap on empty floor cancels. Changing rooms keeps the plant in hand.
   scene.addEventListener('click', (e) => {
-    if (e.target.closest('.room-nav')) return;
+    if (Date.now() - draggedAt < 400) return;
     picked = null;
     ctx.refresh();
   });
@@ -245,17 +303,8 @@ export function renderGarden(ctx) {
     e.stopPropagation();
     poke(scene, bot, band);
   });
-  const nav = roomNav(ctx, rooms.length);
   const stage = h('div', { class: 'stage' }, scene);
-  if (nav) {
-    scene.append(nav.el);
-    let startX = null;
-    stage.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-    stage.addEventListener('touchend', (e) => {
-      const dx = e.changedTouches[0].clientX - startX;
-      if (Math.abs(dx) > 40) nav.move(dx < 0 ? 1 : -1);
-    });
-  }
+  roomNav(ctx, rooms.length, scene, stage);
   if (ctx.deck.complete) {
     const here = ctx.location();
     let arrived = false;
