@@ -19,7 +19,6 @@ export function renderGarden(ctx) {
     'div',
     { class: 'scene' },
     room,
-    h('div', { class: 'shadow' }),
     !asleep && sprite(`art/out/fr_${band}_can.png`, 'can'),
     bot,
   );

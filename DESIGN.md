@@ -1,12 +1,12 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.3 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up)
+Version 1.6 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
 This file is the source of truth for every build session. Read it fully before changing code. When a decision here changes, update this file in the same commit.
 
-Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (boards F1 to F6). Earlier rounds on that canvas are rejected directions; ignore them. Since 1.3 the room itself follows section 4.2, not those boards.
+Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (boards F1 to F6). Earlier rounds on that canvas are rejected directions; ignore them. Since 1.4 the room and interface follow sections 3 and 4, not those boards.
 
 ---
 
@@ -15,13 +15,13 @@ Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (b
 **Goals**
 - Make daily recall of read papers a 3-minute habit (spaced repetition, not trivia).
 - Make progress visible as a garden that fills in over months, tied to real topics.
-- Feel calm and cozy: a dark academia study inside a derelict, overgrown ship, pixel art, one character.
+- Feel calm and cozy: the overgrown hydroponics bay of a derelict spaceship, retro cyberpunk pixel art, one character.
 - Work offline on the phone; sync progress between phone and Mac.
 
 **Non-goals (v1)**
 - No social features, no leaderboards, no push server (reminders come from a Claude scheduled task).
 - No login bonuses or rewards that do not come from answering questions.
-- No shop or currency spending. Water is a score, not money (see open decisions).
+- No shop or currency spending. Water is never spent; its running total moves the building (section 5.7).
 - Plants never die.
 
 ---
@@ -46,11 +46,11 @@ Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (b
 | Journal | Lore chapters unlocked so far, written as journal pages; past weekly results | (not mocked yet) |
 
 Layout rules (phone 390 px wide reference):
-- Top: title "The Conservatory" (Cormorant Garamond 26/600) and local date/time (EB Garamond italic). Under it a thin stat strip in small caps: Water · Streak · Plants.
+- Top: title "The Conservatory" (Michroma 14, uppercase) and local date/time (Barlow Condensed). Under it a thin stat strip in label style, each item with a small color block: Water · Streak · Plants.
 - Scene: 388 × 560 px (art 97 × 140 at 4×), centred, `image-rendering: pixelated`. The scene never scrolls. On phones narrower than 388 px (the Galaxy S25 is 360 px) keep 4× and trim the side edges evenly.
 - Bottom: one primary action, then the 4-tab nav. Nothing else.
 - Settings (the sync token) opens by tapping the stat strip. The strip also shows the "not syncing" state.
-- Freakbot's speech is a paper slip over the scene: parchment fill, VT323 19 px, tilted ±1.5°, auto-hides after ~6 s, tap to dismiss.
+- Freakbot's speech is a terminal slip over the scene: panel fill, VT323 19 px, tilted ±1.5°, auto-hides after ~6 s, tap to dismiss.
 
 ---
 
@@ -58,53 +58,55 @@ Layout rules (phone 390 px wide reference):
 
 ### 4.1 Pixel rules
 - Scene art resolution 97 × 140, displayed at 4×. Plants 26 × 34. Freakbot sprite grid 18 × 24 drawn inside a 32 × 34 frame (includes scarf tails).
-- No anti-aliasing, no smooth gradients inside art, no rotation of pixel art. Light is done with stepped, quantized glows (see `art/final.py`).
+- No anti-aliasing, no smooth gradients inside art, no rotation of pixel art. Light is done with stepped, quantized glows and ordered dithering (see `art/final.py`).
 - Motion is stepped: CSS `steps()` or frame swaps, ~150 ms per tick. No easing curves.
 - Respect `prefers-reduced-motion`: freeze animations, keep slips.
 
 ### 4.2 The room
-A derelict ship docked above a rainy neon port city, its conservatory overgrown and kept as a study. Dark academia inside, retro-future hull around it. Fixed composition (do not rearrange per screen):
-- Back: four tall arched viewports with structural ribs and iron mullions. Outside: the city, rain, one bright billboard.
-- Hull: long aligned plates, conduit, cables, vents, a junction box, hazard stripes, a strip of deck lights. No staggered, brick-like or speckled surfaces.
-- Vines clump in the corners and hang from the ceiling, weeds at the deck edge. Never an even garland.
+The hydroponics bay of a flying library, a derelict ship that Freakbot keeps running as it drifts between abandoned cities and planets. One-point perspective, fixed composition (do not rearrange per screen):
+- Hull: octagonal rings with structural ribs recede to the back wall, with ceiling light panels, corner light strips and deck seams running along the ship's length. No staggered, brick-like or speckled surfaces.
+- Back: one large octagonal viewport set deep into the hull, onto the current destination (section 5.7). In orbit: stars, a distant station and a planet that turns through the day.
+- Plants escape along the hull, thickest in the upper corners. Never an even garland.
 - Hanging copihue basket top centre.
-- Left: writing desk with stacked books, green banker's lamp, open notebook, inkwell; candle at night. Above it the dusty rose LIBROS sign, the one hot light in the room.
-- Right: three-tier steel étagère (plant stand) with 6 small clay pots.
-- Floor: metal deck with seams running to the viewports, worn wine rug with gold border centre, big floor pots left and right.
-- Freakbot stands on the rug; brass watering can beside him.
+- Left: research console with a terminal and stacked books. Above it the red LIBROS sign, the one hot light in the room.
+- Right: three-tier grow rack in a dark glass bay with red light bars and 6 small pots.
+- Floor: metal deck, Freakbot's round charging pad centre, big floor bays left and right.
+- Freakbot stands on the pad; brass watering can beside him.
 
-Color: keep accents to dusty rose, amber and ice, and foliage cool. Avoid pure red next to bright green.
+Color: the room and the interface share one palette (section 4.4). Warm white hull, black, signal red, blue, yellow, foliage cool. Depth matters more than whiteness: sections brighten toward the window, the nearest section is dark, ribs throw shadows, and furniture has side faces and contact shadows. Light is one dithered pass in `art/final.py → grade()`: falloff from the window, the viewport mirrored in the deck, haze around the frame, form shading on sprites, grime on the hull. Everything is scaled to Freakbot: the console at his chest, the terminal the size of his head, the rack about twice his height, thin ribs. Avoid pure red next to bright green.
 
 ### 4.3 Time of day (phone clock)
 | Band | Hours | Sky | Lighting |
 |---|---|---|---|
-| Morning | 05:00 to 11:00 | pale smog, grey-green to cream | soft light across the deck, lamp off, sign dim |
-| Day | 11:00 to 17:00 | overcast blue with rain | flat and cool, lamp off |
-| Golden | 17:00 to 21:00 | amber smog | warm shafts, lamp on |
-| Night | 21:00 to 05:00 | deep blue, city lights, rain | lamp, candle and sign glows, Freakbot asleep |
+| Morning | 05:00 to 11:00 | sunrise on the planet's limb | warm ship lighting, ice strips |
+| Day | 11:00 to 17:00 | bright blue planet, black space | cool and even, ice strips |
+| Golden | 17:00 to 21:00 | orange planet, violet space | warm, amber strips |
+| Night | 21:00 to 05:00 | dark planet with city lights | dim, pale blue strips, sign glow, Freakbot asleep |
 
 Implementation: render the room once per band (pre-baked PNGs) plus Freakbot and plants as separate layers so they can move. Plants are graded to match the band (multipliers in `art/final.py → BANDS`).
 
-### 4.4 Palette (UI tokens)
-| Token | Hex | Use |
-|---|---|---|
-| ink | #141D20 | app background (night: #0E1518) |
-| parchment | #EADFC6 | cards, slips, primary surface |
-| card | #F4EEDF | index cards |
-| text-dark | #2A1D15 | text on parchment |
-| text-muted | #A8B6B2 | secondary text on ink |
-| brass | #B08D4A | small-caps labels, active tab |
-| burgundy | #7A2632 | destructive-weight actions, card rule (#B5413F) |
-| bottle | #2F4A35 | secondary accent |
-| rule-blue | #A9C3D6 | ruled lines on cards |
-| line | #33454A | dividers on ink |
+### 4.4 Palette (shared by the room and the interface)
+| Token | Day | Night | Use |
+|---|---|---|---|
+| ink | #D9DAD4 | #15181E | app background, hull white |
+| panel | #EFEEE8 | #1F232B | cards, slips, settings |
+| panel-raised | #F8F7F2 | #292E37 | options and key points |
+| text | #1C2028 | #EFEEE8 | primary text |
+| text-muted | #565E6B | #A5A9A6 | secondary text |
+| bar | #1C2028 | #EFEEE8 | label bars, primary buttons, active tab |
+| rule | #1C2028 | #6C6E6C | panel borders |
+| line | #A9ACA8 | #3E434C | minor dividers |
+| red | #C4402E | #E0604A | the sign, warnings, button edge |
+| blue | #2B6CA3 | #8DB8DE | Water marker, written answers, floor lights |
+| yellow | #E0A92E | #E0A92E | Streak marker, selected key point, terminal |
 
 ### 4.5 Type
-- Cormorant Garamond (display, 500/600, italic): titles, plant names, primary buttons.
-- EB Garamond (body, 400/500, italic): everything else, including written answers on cards (italic).
+- Michroma: the title, primary buttons, panel headings. Uppercase, small sizes only.
+- Barlow (400 to 600): all reading text on cards.
+- Barlow Condensed (600, 700): labels, clock, tabs, sources. Label style is 12 to 13 px, wide tracking, uppercase.
 - VT323: only Freakbot's voice (slips) and nothing else.
-- Small caps style: 12 px, letter-spacing 0.16em, uppercase.
-- No third family. No typewriter font.
+- No fifth family.
+- The interface works like ship signage: black label bars, small square color markers, 2 px rules, square corners.
 
 ### 4.6 Freakbot
 - Base sprite: his Mac app's code (`freakbot/web/freakbot.js` v1.3.1), outfit: tin can, bare metal paint, bottlecap propeller, spring arms, wheel.
@@ -136,7 +138,7 @@ Thirsty: leaves to dry olive, 1 px droop, pale cracked soil. Wilted: stronger dr
 - A topic is a note in the vault's `Topics/` folder. A paper belongs to a topic through its `topics` frontmatter.
 - A topic gets a plant once it has at least one paper with a summary and at least one question.
 - Species are assigned in `data/plants.json` (topic → species, slot). Default: assign in order of first appearance, cycling through species. Felix can edit the file.
-- Capacity: 12 visible plants (6 étagère, 4 floor, 2 hanging). Seeds, sprouts and saplings sit on the étagère; bloom and fruit move to floor pots or hanging baskets. If more than 12 topics qualify, show the 12 with the most questions; the rest live in the Herbarium only (open decision: second room).
+- Capacity: 12 visible plants (6 étagère, 4 floor, 2 hanging). Seeds, sprouts and saplings sit on the étagère; bloom and fruit move to floor pots or hanging baskets. Each room holds 12 plants, filled in order of first appearance. When a room is full the next one opens (section 5.7).
 
 ### 5.2 Stage from mastery
 For each topic, over its questions' latest grades: `answered` = number answered at least once; `mastery` = (got + 0.5 × partial) / answered.
@@ -170,13 +172,18 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 ### 5.6 Journal
 - One lore chapter per completed day, in order (13 chapters from the Mac app’s `lines.js`, Coronel Plumas appears in text only). After the last, weekly results pages only, until new chapters are written.
 
+### 5.7 Rooms and travel
+- Rooms open in this order, every 12 plants: Hydroponics bay, Archive (shelves of books and card catalogs), Observatory (domed roof, telescope), Greenhouse deck (open to the sky). Swipe or tap between them on the Garden tab.
+- Destinations come from `data/locations.json`. The current one is `floor(water / 200) mod count`, so it needs no saved state and only answering cards can move the building. About one new view every 10 days.
+- First destinations: orbit, old port city (Valparaíso-inspired), ruined college town, ringed planet. Time-of-day lighting applies at every stop.
+
 ---
 
 ## 6. Data and architecture
 
 ### 6.1 Stack
 - Static site, no framework required (vanilla JS modules) or a small Vite + Preact build. Keep the bundle under 300 KB excluding art.
-- PWA: `manifest.webmanifest` (name "Freakbot", icon from the sprite, `display: standalone`, theme #141D20) and a service worker that caches the shell, art and current cards for offline use.
+- PWA: `manifest.webmanifest` (name "Freakbot", icon from the sprite, `display: standalone`, theme #D9DAD4) and a service worker that caches the shell, art and current cards for offline use.
 - Hosting: GitHub Pages from the public repo, at `https://freakbot.nicolascardenasmiller.com/`.
 
 ### 6.2 Repos
@@ -258,20 +265,20 @@ Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"):
 - Done when: installable on the Samsung, works offline, a graded card syncs to the Mac within a minute.
 
 **Phase 2: the garden**
-- Plants from `plants.json`, stages from mastery, thirsty/wilted, slot placement and moves.
+- Plants from `plants.json`, stages from mastery, thirsty/wilted, slot placement and moves, rooms (section 5.7).
 - Freakbot watering animation after each answer (F6), sleep at night, slips.
 - Herbarium sheets.
 - Done when: answering a Trade card visibly waters the lemon tree.
 
 **Phase 3: polish**
-- Journal and lore, milestones, more Freakbot frames, nalca redraw, sound off by default.
+- Journal and lore, milestones, travel between destinations (section 5.7), more Freakbot frames, nalca redraw, sound off by default.
 - Update the streak reminder task; migrate old data; retire the claude.ai quiz page.
 
 ---
 
 ## 9. Open decisions
-1. What water is for, beyond a score (room decorations to place? unlocks only?).
-2. More than 12 topics: second room, or only comps topics get plants.
+1. Resolved: water fuels travel (section 5.7).
+2. Resolved: a new room opens every 12 plants (section 5.7).
 3. Which topics map to which species (default automatic).
 4. Whether the Friday quiz stays 12 cards or shrinks now that dailies exist.
 5. Resolved: the app moved to its own subdomain, `freakbot.nicolascardenasmiller.com`, so the sync token in localStorage is no longer shared with `nicolascardenasmiller.com` and the other Pages sites served from it.

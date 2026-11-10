@@ -60,12 +60,14 @@ function paintStrip() {
   const { water, streak } = store.save.profile;
   const topics = new Set(deck.list.flatMap((c) => c.topics ?? []));
   const { status } = store;
-  const warning = ['missing', 'rejected', 'error'].includes(status) ? 'not syncing' : status === 'offline' ? 'offline' : '';
+  const failing = ['missing', 'rejected', 'error'].includes(status);
   // A 360 px strip fits three items, so a sync warning takes the place of Plants.
-  $('#stats').textContent = `Water ${water} · Streak ${streak} · ${warning ? '' : `Plants ${topics.size}`}`;
-  const flag = $('#sync-flag');
-  flag.textContent = warning;
-  flag.classList.toggle('bad', status !== 'offline');
+  const third = failing
+    ? h('span', { class: 'cell warn' }, 'Not syncing')
+    : status === 'offline'
+      ? h('span', { class: 'cell quiet' }, 'Offline')
+      : h('span', { class: 'cell' }, `Plants ${topics.size}`);
+  $('#stats').replaceChildren(h('span', { class: 'cell' }, `Water ${water}`), h('span', { class: 'cell' }, `Streak ${streak}`), third);
 }
 
 let shownMinute = '';

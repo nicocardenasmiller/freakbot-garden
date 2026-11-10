@@ -1,5 +1,5 @@
 import json, random, math
-from PIL import Image
+from PIL import Image, ImageDraw
 import plants as PL
 from garden2 import plant_img
 SP=json.load(open('sprites.json'))
@@ -25,148 +25,240 @@ class S:
                 r,g,b,a=p[x,y]
                 if a: s.px(x0+x,y0+y,(r,g,b))
 
-# Slate machine room, one dusty rose light, foliage kept cool so it never reads red and green.
-S0,S1,S2,S3,S4='#141D20','#1E2A2E','#2B3A3F','#3D4F54','#5C7174'
-ROSE_LIGHT,ROSE,ROSE_DEEP,ICE,ICE2='#FFDCE0','#E9879A','#C9506E','#BFE3F2','#7FB4D6'
-TEAL_LED,AMBER,MUSTARD='#7FD8D0','#E8B860','#BE962C'
+# Muted white hydroponics bay of a derelict ship: octagonal hull rings recede to one big viewport.
+S0,S1,S2,S3,S4='#6C6E6C','#ABADA8','#C6C7C1','#D9DAD4','#EFEEE8'
+DARK,POT,POT_RIM,POT_LIT='#1C2028','#3A3E46','#1C2028','#6C7078'
+TEAL='#2B6CA3'
+# the interface palette: warm white, black, signal red, blue, yellow
+ROSE_LIGHT,ROSE,ROSE_DEEP,ICE,MINT,AMBER='#F8F7F2','#E0604A','#C4402E','#8DB8DE','#E0A92E','#E0A92E'
 LEAF0,LEAF1,LEAF2='#12282A','#1E4440','#3A7468'
-WIN_TOP,WIN_BOT=4,60
-PANES=[(4,20),(26,22),(50,22),(74,19)]
 
-# mul grades everything that is not sky or lit. shaft is the light from the panes across the floor.
+# mul grades everything that is not space or lit. The planet turns with the phone clock.
 BANDS={
- 'morning':dict(sky=['#8FA3A8','#A8B8B4','#C2CABC','#DAD6BE','#ECE2C2'],towers=('#7C9296','#889C9E'),windows=['#E8C98A','#F2D9A0'],rain='#E6EAE0',rain_n=14,mul=(1.0,1.0,.96),shaft=(18,16,10),sign=.45),
- 'day':dict(sky=['#14262E','#1B3440','#264655','#37607A','#5A8DAA'],towers=('#0F1C22','#13242B'),windows=[AMBER,'#8FD0E8'],rain=ICE2,rain_n=26,mul=(.9,.97,1.0),shaft=(8,16,24),sign=.9),
- 'golden':dict(sky=['#5E3420','#7E4624','#A05E2A','#C27A32','#DE9A42','#EDB65C'],towers=('#6A3A20','#7A4424'),windows=['#FFD98A','#FFE9B0'],rain='#F0CC96',rain_n=14,mul=(1.02,.86,.7),shaft=(28,14,2),sign=.8),
- 'night':dict(sky=['#14262E','#1B3440','#264655','#37607A','#5A8DAA'],towers=('#0F1C22','#13242B'),windows=[AMBER,'#8FD0E8'],rain=ICE2,rain_n=26,mul=(.5,.58,.76),shaft=(8,16,24),sign=1.12),
+ 'morning':dict(space=['#0E1430','#182048','#2A2F5E'],planet=['#27406A','#3F6E8E','#7FB0B8'],limb='#FFE9B8',light=(30,70),mul=(1.0,.98,.92),sign=.5,strip='#FFF4DC',window=.5,bloom=(255,233,190)),
+ 'day':dict(space=['#070A18','#0A0E22','#0E1430'],planet=['#1E5A8A','#3A8AB8','#A8DCF0'],limb='#DDF2FF',light=(55,62),mul=(1.0,1.0,1.0),sign=.75,strip='#F4FBFF',window=.55,bloom=(190,225,255)),
+ 'golden':dict(space=['#1A1030','#2A1436','#3E1A3C'],planet=['#5E2E3A','#B0603A','#E8A050'],limb='#FFD27A',light=(82,66),mul=(1.0,.82,.66),sign=.8,strip='#FFD79A',window=.45,bloom=(255,170,90)),
+ 'night':dict(space=['#05060F','#070A18','#0A0E22'],planet=['#0E1428','#141C36','#1E2A4A'],limb='#4FA0C8',light=(30,60),mul=(.46,.5,.68),sign=1.1,strip='#A9C8E4',window=.2,bloom=(90,130,190)),
 }
 ADD=(0,0,0)
 GLYPH={'L':['100','100','100','100','111'],'I':['111','010','010','010','111'],'B':['110','101','110','101','110'],
        'R':['110','101','110','101','101'],'O':['111','101','101','101','111'],'S':['011','100','010','001','110']}
+RINGS=[0,.22,.4,.55,.68,.8,.9,1.0]
 
-def wall(s):
-    # hull plating: long plates and structural ribs, seams line up so it never reads as masonry
-    s.rect(0,0,W,88,S2)
-    s.rect(0,0,W,3,S1); s.rect(0,3,W,1,S0)
-    for x,w in ((0,4),(24,2),(48,2),(72,2),(93,4)):
-        s.rect(x,0,w,62,S3); s.rect(x,0,1,62,S4); s.rect(x+w-1,0,1,62,S0)
-    for x in (1,94):
-        for y in range(6,60,9): s.px(x+1,y,S4)
-    s.rect(0,62,W,26,S1)
-    x=0
-    for w in (26,22,30,19):
-        s.rect(x,62,w,26,S2); s.rect(x,62,w,1,S3); s.rect(x,87,w,1,S0); s.rect(x+w-1,62,1,26,S0)
-        for cx,cy in ((x,62),(x+w-1,62),(x,87),(x+w-1,87)): s.px(cx,cy,S0)
-        x+=w
-    for y in range(74,84,2): s.rect(33,y,9,1,S0)
-    s.px(72,72,TEAL_LED,lit=True); s.px(74,72,AMBER,lit=True)
-    for x in range(2,W,8): s.rect(x,86,4,1,ICE2,lit=True)
+def ring(t):
+    L,T,R,B,c=[a+(b-a)*t for a,b in zip((-10,-12,106,152,34),(25,26,71,80,10))]
+    return [(L+c,T),(R-c,T),(R,T+c),(R,B-c),(R-c,B),(L+c,B),(L,B-c),(L,T+c)]
 
-def window(s):
-    b=BANDS[s.t]; bands=b['sky']
-    for px0,pw in PANES:
-        cx=px0+pw/2
-        for y in range(WIN_TOP,WIN_BOT):
-            for x in range(px0,px0+pw):
-                if y<WIN_TOP+12 and (WIN_TOP+12)-y>(1-abs(x-cx)/(pw/2))*14: continue
-                band=min(len(bands)-1,int((y-WIN_TOP)/(WIN_BOT-WIN_TOP)*len(bands)))
-                s.im.putpixel((x,y),hx(bands[band])); s.sky.add((x,y))
-    for x,y in list(s.sky):
-        for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)):
-            ex,ey=x+dx,y+dy
-            if 0<=ex<W and 0<=ey<H and (ex,ey) not in s.sky: s.im.putpixel((ex,ey),hx(S4 if dy>0 or dx>0 else S0))
-    def put(x,y,c):
-        if (x,y) in s.sky: s.im.putpixel((x,y),hx(c))
-    r=random.Random(5); x=0
-    while x<W:
-        w,top=r.randint(5,10),r.randint(20,46); tone=r.choice(b['towers'])
-        for xx in range(x,x+w):
-            for y in range(top,WIN_BOT): put(xx,y,tone)
-        for y in range(top+2,WIN_BOT,3):
-            for xx in range(x+1,x+w-1,2):
-                if r.random()<.2: put(xx,y,r.choice(b['windows']))
-        x+=w
-    # one tall billboard, the only bright thing out there
-    for y in range(30,44):
-        for xx in range(55,60): put(xx,y,ICE if (y+xx)%5 else ICE2)
-    rain=random.Random(9)
-    for _ in range(b['rain_n']):
-        xx,y=rain.randint(4,92),rain.randint(WIN_TOP+8,WIN_BOT-3)
-        put(xx,y,b['rain']); put(xx,y+1,b['rain'])
-    for px0,pw in PANES:
-        cx=int(px0+pw/2)
-        for y in range(WIN_TOP+10,WIN_BOT): s.px(cx,y,S0)
-        for y in (WIN_TOP+22,WIN_TOP+40): s.rect(px0,y,pw,1,S0)
-    s.rect(0,WIN_BOT,W,2,S3); s.rect(0,WIN_BOT,W,1,S4)
+def P(i,u,t):
+    # point u of the way along octagon edge i, on the ring at depth t
+    r=ring(t); (x0,y0),(x1,y1)=r[i],r[(i+1)%8]
+    return (x0+(x1-x0)*u,y0+(y1-y0)*u)
 
-def machinery(s):
-    s.rect(0,64,W,3,S3); s.rect(0,64,W,1,S4); s.rect(0,66,W,1,S0)
-    for x in range(6,W,19): s.rect(x,63,3,5,S4); s.rect(x,67,3,1,S0)
-    s.rect(0,70,W,1,S0)
-    for x0,x1,sag,c in ((34,66,8,S0),(40,72,5,'#6A5564'),(2,30,6,S0)):
-        for x in range(x0,x1):
-            t=(x-x0)/(x1-x0); s.px(x,62+int(sag*4*t*(1-t)),c)
-    s.rect(47,62,4,26,S2); s.rect(47,62,1,26,S4); s.rect(50,62,1,26,S0)
-    s.rect(44,74,10,9,S3); s.rect(44,74,10,1,S4)
-    s.px(46,76,TEAL_LED,lit=True); s.px(48,76,AMBER,lit=True)
-    s.rect(46,79,6,1,S0); s.rect(46,81,6,1,S0)
-    for y in range(76,87):
-        for x in range(58,66): s.px(x,y,MUSTARD if (x+y)%6<3 else S0)
+def quad(s,pts,c,lit=False):
+    mask=Image.new('1',(W,H),0); ImageDraw.Draw(mask).polygon(pts,fill=1); m=mask.load()
+    for y in range(H):
+        for x in range(W):
+            if m[x,y]: s.px(x,y,c,lit=lit)
 
-def room(s):
-    # ship's deck: plates widen toward the viewer, seams run to the viewport
-    rows=[90,98,110,126,140]
-    s.rect(0,88,W,2,S1)
-    for i,(y0,y1) in enumerate(zip(rows,rows[1:])):
-        s.rect(0,y0,W,y1-y0,S2 if i%2 else '#27353A')
-    for y in rows[:-1]:
-        s.rect(0,y,W,1,S0); s.rect(0,y+1,W,1,S3)
-    for xb in range(-60,160,26):
-        for y in range(90,H):
-            s.px(48+(xb-48)*(y-62)/78,y,S0)
-    for x in range(36,62,2): s.rect(x,90,1,7,S0)
-    s.rect(35,90,28,1,S4); s.rect(35,96,28,1,S4)
-    # worn wine rug
-    rx,ry,rw,rh=18,104,61,30
-    s.rect(rx,ry,rw,rh,'#4A2034'); s.rect(rx+2,ry+2,rw-4,rh-4,'#B08D4A'); s.rect(rx+3,ry+3,rw-6,rh-6,'#5E2A44')
-    s.rect(rx+8,ry+8,rw-16,rh-16,'#2F3A4A'); s.rect(rx+9,ry+9,rw-18,rh-18,'#5E2A44')
-    for x in range(rx+5,rx+rw-5,4): s.px(x,ry+5,'#C9A86A'); s.px(x,ry+rh-6,'#C9A86A')
-    for x in range(rx,rx+rw,2): s.px(x,ry-1,'#C9B48A'); s.px(x,ry+rh,'#C9B48A')
+def line(s,a,b,c,lit=False,step=1):
+    n=max(1,int(max(abs(a[0]-b[0]),abs(a[1]-b[1]))))
+    for k in range(0,n+1,step): s.px(a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n,c,lit=lit)
 
-def desk(s,time):
-    # writing desk left
-    s.rect(0,82,34,3,'#5E3E26'); s.rect(0,82,34,1,'#7A5236'); s.rect(1,85,3,15,'#3E2818'); s.rect(29,85,3,15,'#3E2818')
-    s.rect(4,85,24,5,'#4A3020'); s.rect(14,87,4,1,'#B08D4A')
-    # books stack + standing books
-    for i,(w,c) in enumerate([(12,'#3B3F5C'),(11,'#6E2230'),(13,'#2F4A35')]):
-        s.rect(2+i%2,81-2*i,w,2,c); s.rect(2+i%2,81-2*i,w,1,'#B08D4A' if i==1 else c)
-    # bankers lamp
-    on = time in ('golden','night')
-    s.rect(22,80,6,2,'#8A6A2E'); s.rect(24,74,1,6,'#B08D4A'); s.rect(20,71,9,3,'#2F6B4A'); s.rect(20,71,9,1,'#4E8E68')
-    if on: s.rect(21,74,7,1,'#FFE7A0',lit=True)
-    # open notebook + inkwell
-    s.rect(10,79,9,2,'#E9DCC0'); s.rect(14,79,1,2,'#B9A880'); s.rect(11,79,2,1,'#5A4A3A'); s.rect(16,80,2,1,'#5A4A3A')
-    s.rect(30,78,2,3,'#1A1412'); s.px(31,77,'#E9DCC0')
-    if time=='night':
-        s.rect(6,76,2,4,'#E9DCC0'); s.px(6,75,'#FFE7A0',lit=True); s.px(7,74,'#F6B85A',lit=True)
+BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]]
+def dq(v,x,y,n):
+    # quantize to n steps with ordered dither: no smooth gradients in the art
+    return round(v*n+(BAYER[y%4][x%4]+.5)/16-.5)/n
+
+def light_at(x,y,b):
+    return .74+b['window']*math.exp(-((x-48)**2/40**2+(y-60)**2/62**2))
+
+def form(im,toward=1):
+    # shade a flat sprite: lit from above and from the window side, dark underneath
+    out=im.copy(); src=im.load(); p=out.load(); w,h=im.size
+    keep=(hx('#9FE1CB'),hx('#085041'))
+    op=lambda x,y: 0<=x<w and 0<=y<h and src[x,y][3]>0
+    ys=[y for y in range(h) for x in range(w) if op(x,y)]
+    if not ys: return out
+    top,bot_=min(ys),max(ys)
+    for y in range(h):
+        for x in range(w):
+            if not op(x,y) or src[x,y][:3] in keep: continue
+            f=1.08-.26*(y-top)/max(1,bot_-top)
+            if not op(x,y-1): f=1.24
+            elif not op(x,y+1): f=.7
+            if not op(x+toward,y): f*=1.12
+            elif not op(x-toward,y): f*=.84
+            r,g,bl,a=src[x,y]; p[x,y]=(min(255,int(r*f)),min(255,int(g*f)),min(255,int(bl*f)),a)
+    return out
+
+def sh(c,f):
+    return tuple(max(0,min(255,int(v*f))) for v in hx(c))
+
+def darken(s,x,y,f):
+    if 0<=x<W and 0<=y<H and (x,y) not in s.sky and (x,y) not in s.lit:
+        s.im.putpixel((x,y),sh(s.im.getpixel((x,y)),f))
+
+# Ceiling undersides and lower corners sit in shade. Each section gets brighter toward the window.
+FACE={0:'#B8B9B4',1:'#CFD0CA',2:'#D2D3CD',3:'#A1A39E',4:'#C2C3BD',5:'#A1A39E',6:'#E0E0DA',7:'#CFD0CA'}
+SECTION=[.52,.62,.72,.82,.9,.96,1.0]
+
+CELLS={0:(0,.15,.85,1),2:(0,.33,.66,1),4:(0,.25,.5,.75,1),6:(0,.33,.66,1)}
+
+def hull(s):
+    s.rect(0,0,W,H,sh(S0,.6)); r=random.Random(31); s.lights=[]
+    strip=BANDS[s.t]['strip']
+    for j,(t0,t1) in enumerate(zip(RINGS,RINGS[1:])):
+        f=SECTION[j]
+        for i in range(8):
+            us=CELLS.get(i,(0,1))
+            # no two plates are quite the same white
+            for u0,u1 in zip(us,us[1:]):
+                quad(s,[P(i,u0,t0),P(i,u1,t0),P(i,u1,t1),P(i,u0,t1)],sh(FACE[i],f*(1+r.uniform(-.05,.05))))
+    for j,(t0,t1) in enumerate(zip(RINGS,RINGS[1:])):
+        f=SECTION[j]
+        for i in range(8):
+            if j%2==0:
+                # major rib, with the shadow it throws
+                quad(s,[P(i,0,t0),P(i,1,t0),P(i,1,t0+.028),P(i,0,t0+.028)],sh(FACE[i],f*.94))
+                line(s,P(i,0,t0),P(i,1,t0),sh(S4,f*.96))
+                quad(s,[P(i,0,t0+.028),P(i,1,t0+.028),P(i,1,t0+.05),P(i,0,t0+.05)],sh(FACE[i],f*.78))
+                line(s,P(i,0,t0+.028),P(i,1,t0+.028),sh(S0,f*.8))
+            else:
+                line(s,P(i,0,t0),P(i,1,t0),sh(S0,f*.92))
+        a,b=t0+.06,t1-.015
+        for i,us in ((4,(.25,.5,.75)),(0,(.15,.85)),(2,(.33,.66)),(6,(.33,.66))):
+            for u in us: line(s,P(i,u,a),P(i,u,b),sh(S0,f))
+        # the nearest sections have lost power; lights start further in
+        if j>1:
+            quad(s,[P(0,.38,a),P(0,.62,a),P(0,.62,b),P(0,.38,b)],strip,lit=True)
+            s.lights.append(P(0,.5,(a+b)/2))
+        if j in (2,3,4):
+            for i in (2,6):
+                for k in (.3,.4,.5,.6): line(s,P(i,k,a+.03),P(i,k,b-.03),sh(S0,f*.8))
+    # corner light strips run unbroken down the length of the ship
+    for i,c in ((1,sh(strip,.72)),(7,sh(strip,.72)),(3,sh(TEAL,.8)),(5,sh(TEAL,.8))): line(s,P(i,.5,.4),P(i,.5,.9),c,lit=True)
+    # the viewport is set deep into the hull
+    for i,c in {0:sh(S0,.62),1:sh(S0,.72),2:sh(S0,.9),3:S1,4:S3,5:S1,6:sh(S0,.9),7:sh(S0,.72)}.items():
+        quad(s,[P(i,0,.91),P(i,1,.91),P(i,1,1),P(i,0,1)],c)
+
+def grime(s):
+    # streaks running down from seams, scuffs on the deck
+    r=random.Random(44)
+    for _ in range(70):
+        x,y=r.randint(0,W-1),r.randint(6,100); n=r.randint(3,13)
+        for k in range(n):
+            if k%2==0 or r.random()<.5: darken(s,x,y+k,.91)
+    for _ in range(26):
+        x,y=r.randint(0,W-1),r.randint(92,136); dx=r.choice([-1,1])
+        for k in range(r.randint(3,7)): darken(s,x+dx*k,y+k//3,.9)
+
+def floor_shadows(s):
+    # contact shadows, darkest where the furniture meets the deck, thrown toward the viewer
+    for y in range(110,118):
+        f=.54+(y-110)*.06
+        for x in range(0,34-(y-110)):
+            if dq(1,x,y,1)>=0: darken(s,x,y,f)
+        for x in range(64+(y-110),97): darken(s,x,y,f)
+
+def pot_shadow(s,cx,y,half):
+    for yy in range(y,y+5):
+        f=.58+(yy-y)*.08
+        for x in range(cx-half-(yy-y),cx+half+1): darken(s,x+1,yy,f)
+
+def bot_shadow(s):
+    # falls away from the window, under Freakbot and toward the viewer
+    for y in range(124,134):
+        for x in range(38,70):
+            d=math.hypot((x-53)/15,(y-127)/5)
+            if d<1: darken(s,x,y,dq(.52+d*.42,x,y,6))
+
+def viewport(s):
+    b=BANDS[s.t]; r=ring(1)
+    mask=Image.new('1',(W,H),0); ImageDraw.Draw(mask).polygon(r,fill=1); m=mask.load()
+    area=[(x,y) for y in range(H) for x in range(W) if m[x,y]]
+    for x,y in area:
+        s.im.putpixel((x,y),hx(b['space'][min(2,int((y-26)/54*3))])); s.sky.add((x,y)); s.lit.discard((x,y))
+    st=random.Random(5)
+    px=lambda x,y,c: s.im.putpixel((x,y),hx(c)) if (x,y) in s.sky else None
+    for _ in range(36):
+        px(st.randint(25,71),st.randint(26,78),st.choice(['#FFFFFF','#CFE4FF','#FFE9B8']))
+    # planet, shaded in hard steps away from the light
+    cx,cy,rad=62,104,50; lx,ly=b['light']; tones=b['planet']; cl=random.Random(8)
+    for x,y in area:
+        d=math.hypot(x-cx,y-cy)
+        if d>rad: continue
+        li=math.hypot(x-lx,y-ly)
+        s.im.putpixel((x,y),hx(tones[2 if li<24 else 1 if li<42 else 0]))
+        if d>rad-1.2: s.im.putpixel((x,y),hx(b['limb']))
+    bands=[(62,3),(68,2),(74,3)]
+    for y,h in bands:
+        x0=cl.randint(30,44); w=cl.randint(14,24)
+        for yy in range(y,y+h):
+            for x in range(x0,x0+w):
+                if (x,yy) in s.sky and math.hypot(x-cx,yy-cy)<rad-2 and s.t!='night':
+                    s.im.putpixel((x,yy),hx('#E6F2F8' if s.t in('day','morning') else '#F0C080'))
+    if s.t=='night':
+        for _ in range(40):
+            x,y=cl.randint(30,71),cl.randint(58,79)
+            if (x,y) in s.sky and math.hypot(x-cx,y-cy)<rad-2: s.im.putpixel((x,y),hx(AMBER))
+    # distant station
+    for x,y,c in [(33,38,'#3A4A78'),(34,38,'#3A4A78'),(35,38,'#3A4A78'),(36,38,'#3A4A78'),(37,38,'#3A4A78'),(35,37,'#3A4A78'),(35,39,'#3A4A78'),(38,38,ROSE)]: px(x,y,c)
+    # frame
+    for i in range(8):
+        line(s,r[i],r[(i+1)%8],S4)
+        a=ring(.97); line(s,a[i],a[(i+1)%8],S3)
+    for y in range(26,81): s.px(48,y,S0)
+
+def console(s):
+    # research console left, chest height on Freakbot: books and a terminal the size of his head
+    quad(s,[(0,94),(28,94),(31,87),(11,87)],S3)
+    line(s,(28,94),(31,87),S4)
+    quad(s,[(28,94),(31,87),(31,100),(28,110)],sh(S1,.74))
+    line(s,(31,87),(31,100),sh(S0,.7))
+    s.rect(0,94,28,16,S2); s.rect(0,94,28,1,S4); s.rect(0,95,28,1,S3); s.rect(0,109,28,1,S0); s.rect(27,94,1,16,S0)
+    s.rect(3,98,9,9,S1); s.rect(3,98,9,1,S3)
+    for y in range(100,107,2): s.rect(4,y,7,1,S0)
+    s.rect(15,98,10,4,S1); s.rect(15,103,10,4,S1); s.rect(15,98,10,1,S3); s.rect(15,103,10,1,S3)
+    s.px(17,100,MINT,lit=True); s.px(19,100,AMBER,lit=True); s.px(17,105,ROSE,lit=True)
+    for i,(w,c,g) in enumerate([(9,'#3B3F7C','#F4C25E'),(8,'#7A2C55','#F4C25E'),(9,'#2F6A6A','#CFE4FF')]):
+        s.rect(2+i%2,92-2*i,w,2,c); s.rect(2+i%2,92-2*i,1,2,g)
+    s.rect(14,84,12,10,S3); s.rect(14,84,12,1,S4); s.rect(15,85,10,7,S0); s.rect(16,86,8,5,'#0A1A2A',lit=True)
+    for y,w in ((87,6),(89,4)): s.rect(17,y,w,1,MINT,lit=True)
+    s.px(22,89,AMBER,lit=True); s.rect(18,92,4,2,S2)
 
 def sign(s):
-    for x in (6,28): s.rect(x,52,1,6,S0)
-    s.rect(3,58,28,9,S0); s.rect(4,59,26,7,ROSE_DEEP,lit=True); s.rect(4,59,26,1,ROSE,lit=True)
+    for x in (10,20): s.rect(x,38,1,6,S0)
+    s.rect(7,43,28,9,S0); s.rect(8,44,26,7,ROSE_DEEP,lit=True); s.rect(8,44,26,1,ROSE,lit=True)
     for i,ch in enumerate('LIBROS'):
         for dy,row in enumerate(GLYPH[ch]):
             for dx,bit in enumerate(row):
-                if bit=='1': s.px(6+i*4+dx,60+dy,ROSE_LIGHT,lit=True)
+                if bit=='1': s.px(10+i*4+dx,45+dy,ROSE_LIGHT,lit=True)
 
-def stand(s):
-    # three-tier steel étagère right
-    x0=68
-    for y,w in ((66,24),(78,26),(90,28)):
-        s.rect(x0+(28-w)//2,y,w,2,S3); s.rect(x0+(28-w)//2,y,w,1,S4)
-    s.rect(x0+1,64,1,30,S0); s.rect(x0+26,64,1,30,S0)
-def pot(s,cx,base,col='#9A5A36',small=False):
-    w=9 if small else 13
-    s.rect(cx-w//2,base-2,w,2,'#7A4228'); s.rect(cx-w//2+1,base,w-2,5 if small else 6,col); s.rect(cx-w//2+1,base,1,5 if small else 6,'#B87850')
+def rack(s):
+    # three-tier grow rack right, about twice Freakbot's height, with a side panel running back into the room
+    quad(s,[(70,66),(66,69),(66,98),(70,110)],sh(S1,.7))
+    line(s,(66,69),(66,98),sh(S0,.7))
+    line(s,(66,69),(70,66),S4)
+    s.rect(70,66,27,44,DARK); s.rect(70,66,27,1,S0); s.rect(70,67,27,1,ICE,lit=True); s.rect(70,66,1,44,S0)
+    for y in (82,92,102):
+        s.rect(72,y,24,2,S3); s.rect(72,y,24,1,S4)
+    for y in (72,86,96): s.rect(73,y,22,1,ROSE,lit=True)
+    s.rect(70,106,27,4,S2); s.rect(70,106,27,1,S4)
+    for x in range(74,96,6): s.px(x,108,MINT,lit=True)
+
+def glass(s):
+    # window reflected as two pale diagonals across the rack's glass
+    p=s.im.load()
+    for y in range(68,106):
+        for x in range(71,97):
+            d=(x+y)%64
+            if d in range(20,25) or d in range(30,32):
+                r,g,b=p[x,y]; p[x,y]=(min(255,r+16),min(255,g+20),min(255,b+28))
+
+def pot(s,cx,base,col=POT,small=False):
+    w=7 if small else 11; h=3 if small else 5
+    s.rect(cx-w//2,base-2,w,2,POT_RIM); s.rect(cx-w//2+1,base,w-2,h,col); s.rect(cx-w//2+1,base,1,h,POT_LIT)
+    if not small: s.rect(cx-w//2+2,base+2,w-4,1,ICE,lit=True)
 def scarf(img):
     p=img.load()
     R,R2,D,G='#C9932E','#E0AE48','#8A5E1A','#7A2632'
@@ -191,20 +283,16 @@ def bot_img(name):
         if 0<=x+6<32 and 0<=y+5<34: img.putpixel((x+6,y+5),hx(c)+(255,))
     return scarf(img)
 def bot(s,name,ox,oy):
-    img=bot_img(name)
-    # shadow
-    for x in range(ox-1,ox+19):
-        for y in range(oy+23,oy+25):
-            r,g,b=s.im.getpixel((x,y)); s.im.putpixel((x,y),(int(r*.7),int(g*.7),int(b*.7)))
+    img=form(bot_img(name),1)
     s.sprite(img,ox-6,oy-5)
     # face screen glows a bit
     for x,y,c in SP[name]:
         if c.upper() in ('#9FE1CB','#085041'): s.lit.add((ox+x,oy+y))
 
 def hanging(s):
-    s.rect(48,0,1,10,'#8A6A2E')
-    for dx in range(-6,7): s.px(48+dx,10+abs(dx)//3,'#8A6A2E')
-    s.rect(43,11,11,4,'#6E4A2A'); s.rect(43,11,11,1,'#8E6438')
+    s.rect(48,0,1,10,POT_RIM)
+    for dx in range(-6,7): s.px(48+dx,10+abs(dx)//3,POT_RIM)
+    s.rect(43,11,11,4,POT); s.rect(43,11,11,1,POT_LIT)
     for i,x in enumerate(range(43,54,2)):
         L=4+((x*5)%9)
         for k in range(L): s.px(x+(k%2),15+k,LEAF1 if k%3 else LEAF2)
@@ -219,35 +307,47 @@ def leaf(s,x,y,r):
         s.px(cx,cy,LEAF2)
 
 def overgrowth(s,r):
-    # clumps in the corners and one off centre, so it never hangs like a garland
-    for _ in range(34):
-        lo,hi,depth=r.choice([(0,20,20),(0,20,20),(72,96,16),(72,96,16),(30,38,6)])
+    # plants escaping the bay along the hull, thickest in the corners
+    for _ in range(26):
+        lo,hi,depth=r.choice([(0,16,16),(0,16,16),(80,96,12),(80,96,12)])
         leaf(s,r.randint(lo,hi),r.randint(0,depth),r)
-    for x0,length in ((1,58),(94,62)):
-        px=x0
-        for y in range(length):
-            px+=r.choice([-1,0,0,1]) if y%3==0 else 0
-            px=max(0,min(W-1,px)); s.px(px,y,LEAF1)
-            if y%5==2: leaf(s,px,y,r)
-    for x in list(range(0,18,3))+list(range(64,97,4))+[33,40,57]:
-        for k in range(r.randint(2,5)): s.px(x+(k%2),88+r.randint(0,1)-k,LEAF2 if k else LEAF1)
-    for x,y in ((12,137),(70,138),(34,101),(90,110),(3,110)):
-        for k in range(r.randint(3,5)): s.px(x+k%2,y-k,LEAF2); s.px(x+1-k%2,y-k+1,LEAF1)
-    for x,y,c in ((26,98,ICE2),(66,136,ROSE),(8,118,MUSTARD)):
-        s.rect(x,y,2,3,c); s.px(x,y,S4)
+    px=2
+    for y in range(44):
+        px+=r.choice([-1,0,0,1]) if y%3==0 else 0
+        px=max(0,min(W-1,px)); s.px(px,y,LEAF1)
+        if y%5==2: leaf(s,px,y,r)
+    for x,y in ((6,136),(40,138),(62,137),(92,132),(70,110)):
+        for k in range(r.randint(3,6)): s.px(x+k%2,y-k,LEAF2); s.px(x+1-k%2,y-k+1,LEAF1)
+
+def pad(s):
+    # Freakbot's charging pad
+    cx,cy=48,124
+    for y in range(108,140):
+        for x in range(W):
+            d=math.hypot((x-cx)/33,(y-cy)/12)
+            if d<=1: s.px(x,y,'#3A3E46' if d>.82 else '#1C2028' if d>.62 else '#2B2F37')
+    for a in range(0,360,18):
+        s.px(cx+31*math.cos(math.radians(a)),cy+11*math.sin(math.radians(a)),MINT,lit=True)
 
 def build(time, face='fbo', with_bot=True):
-    s=S(time); r=random.Random(21); wall(s); window(s); machinery(s); room(s); desk(s,time); sign(s); stand(s)
-    # shelf plants (small)
-    for cx,base,(n,st) in [(74,64,('liuto',2)),(86,64,('quisco',2)),(73,76,('copihue',3)),(88,76,('maravilla',2)),(76,88,('tomatera',3)),(90,88,('nalca',2))]:
-        s.sprite(plant_img(n,st), cx-13, base-28-2)
-    for cx,base,c in [(74,64,'#9A5A36'),(86,64,'#8E4A2A'),(73,76,'#9A5A36'),(88,76,'#8E4A2A'),(76,88,'#9A5A36'),(90,88,'#8E4A2A')]:
-        pot(s,cx,base-2,c,small=True)
+    s=S(time); r=random.Random(21); hull(s); viewport(s)
+    # remember the bare deck, for reflections
+    mask=Image.new('1',(W,H),0); d=ImageDraw.Draw(mask)
+    for i in (3,4,5): d.polygon([P(i,0,0),P(i,1,0),P(i,1,1),P(i,0,1)],fill=1)
+    m=mask.load(); s.floor={(x,y):s.im.getpixel((x,y)) for y in range(H) for x in range(W) if m[x,y] and (x,y) not in s.sky and (x,y) not in s.lit}
+    grime(s); floor_shadows(s); console(s); sign(s); rack(s); pad(s); bot_shadow(s)
+    # rack plants (small)
+    for cx,base,(n,st) in [(77,80,('liuto',1)),(89,80,('quisco',1)),(77,90,('copihue',2)),(89,90,('maravilla',1)),(77,100,('tomatera',2)),(89,100,('nalca',1))]:
+        s.sprite(form(plant_img(n,st),-1), cx-13, base-28-2)
+    for cx,base in [(77,80),(89,80),(77,90),(89,90),(77,100),(89,100)]:
+        pot(s,cx,base-2,small=True)
+    glass(s)
     hanging(s)
-    # floor big pots
-    s.sprite(plant_img('limonero',4),14-13,124-28-3); pot(s,14,121)
-    s.sprite(plant_img('araucaria',3),84-13,136-28-3); pot(s,84,133,'#8E4A2A')
-    s.sprite(plant_img('liuto',4),30-13,138-28-3); pot(s,30,135,'#9A5A36')
+    # floor bays
+    pot_shadow(s,14,126,7); pot_shadow(s,84,138,7)
+    s.sprite(form(plant_img('limonero',3),1),14-13,124-28-3); pot(s,14,121)
+    s.sprite(form(plant_img('araucaria',2),-1),84-13,136-28-3); pot(s,84,133)
+    s.sprite(form(plant_img('liuto',3),1),30-13,138-28-3); pot(s,30,135)
     overgrowth(s,r)
     if with_bot: bot(s,'fbn' if time=='night' else face,44,102)
     # watering can
@@ -255,39 +355,55 @@ def build(time, face='fbo', with_bot=True):
     return grade(s)
 
 def grade_sprite(im,t):
-    # same band multipliers as grade(), for layers drawn over the baked room; the face screen stays lit
-    out=im.copy(); p=out.load(); mul=BANDS[t]['mul']
+    # same band light as grade() at Freakbot's spot on the deck; the face screen stays lit
+    out=form(im,1); p=out.load(); b=BANDS[t]; mul=[m*light_at(48,114,b) for m in b['mul']]
     for y in range(out.height):
         for x in range(out.width):
-            r,g,b,a=p[x,y]
-            if a and (r,g,b) not in (hx('#9FE1CB'),hx('#085041')):
-                p[x,y]=tuple(max(0,min(255,int(v*m+d))) for v,m,d in zip((r,g,b),mul,ADD))+(a,)
+            r,g,bl,a=p[x,y]
+            if a and (r,g,bl) not in (hx('#9FE1CB'),hx('#085041')):
+                p[x,y]=tuple(max(0,min(255,int(v*m+d))) for v,m,d in zip((r,g,bl),mul,ADD))+(a,)
     return out
 
 def grade(s):
-    p=s.im.load(); t=s.t; b=BANDS[t]; mul=b['mul']
+    p=s.im.load(); t=s.t; b=BANDS[t]; mul=b['mul']; raw=s.im.copy().load(); bloom=b['bloom']
+    free=lambda x,y: (x,y) not in s.sky and (x,y) not in s.lit
     for y in range(H):
         for x in range(W):
-            if (x,y) in s.sky or (x,y) in s.lit: continue
-            p[x,y]=tuple(max(0,min(255,int(v*m))) for v,m in zip(p[x,y],mul))
+            if free(x,y): p[x,y]=tuple(max(0,min(255,int(v*m))) for v,m in zip(p[x,y],mul))
+    # the polished deck mirrors the viewport and the lights
+    for (x,y),c in s.floor.items():
+        if raw[x,y]!=c or y<82: continue
+        sy=int(80-(y-82)*.55)
+        if sy<26 or free(x,sy): continue
+        k=dq(.22*(1-(y-82)/62),x,y,12)
+        if k>0: p[x,y]=tuple(int(v+(c2-v)*k) for v,c2 in zip(p[x,y],raw[x,sy]))
+    # light falls off away from the window and picks up its color near it
+    for y in range(H):
+        for x in range(W):
+            if not free(x,y): continue
+            L=dq(light_at(x,y,b),x,y,32); w=(light_at(x,y,b)-.74)/max(.01,b['window'])
+            p[x,y]=tuple(max(0,min(255,int((v*L)+(c-v*L)*.09*w))) for v,c in zip(p[x,y],bloom))
     def glow(gx,gy,rad,col,st):
-        for y in range(gy-rad,gy+rad+1):
-            for x in range(gx-rad,gx+rad+1):
-                if 0<=x<W and 0<=y<H and (x,y) not in s.sky and (x,y) not in s.lit:
+        for y in range(int(gy-rad),int(gy+rad+1)):
+            for x in range(int(gx-rad),int(gx+rad+1)):
+                if 0<=x<W and 0<=y<H and free(x,y):
                     d=math.hypot(x-gx,(y-gy)*1.1)/rad
                     if d<1:
-                        k=round(st*(1-d)**1.4*6)/6; r,g,bl=p[x,y]
-                        p[x,y]=(min(255,int(r+col[0]*k)),min(255,int(g+col[1]*k)),min(255,int(bl+col[2]*k)))
-    glow(17,72,30,(104,34,56),b['sign'])
-    if t in ('golden','night'): glow(24,76,12,(70,62,30),.4)
-    # stepped light from the panes across the floor
-    for x0 in (10,34,58):
-        for y in range(90,122):
-            shift=int((y-90)*.35); k=1 if y<104 else .56
-            for x in range(x0+shift,x0+shift+8):
-                if 0<=x<W and (x,y) not in s.lit:
-                    r,g,bl=p[x,y]; sr,sg,sb=b['shaft']
-                    p[x,y]=(min(255,int(r+sr*k)),min(255,int(g+sg*k)),min(255,int(bl+sb*k)))
+                        k=dq(min(1,st*(1-d)**1.4),x,y,20)
+                        if k>0: p[x,y]=tuple(int(v+(c-v)*k) for v,c in zip(p[x,y],col))
+    strip=hx(b['strip'])
+    for lx,ly in s.lights: glow(lx,ly,8,strip,.16)
+    glow(21,47,22,(224,96,74),b['sign']*.26)
+    glow(20,89,10,(224,169,46),.3)
+    glow(83,88,18,(224,96,74),.1)
+    # haze just around the window
+    for y in range(H):
+        for x in range(W):
+            if not free(x,y): continue
+            d=math.hypot((x-48)/27,(y-53)/31)
+            if 1<=d<1.5:
+                k=dq(b['window']*.16*(1-(d-1)/.5),x,y,20)
+                if k>0: p[x,y]=tuple(min(255,int(v+(c-v)*k)) for v,c in zip(p[x,y],bloom))
     return s.im
 
 BAND_NAMES=('morning','day','golden','night')

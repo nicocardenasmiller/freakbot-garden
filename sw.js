@@ -1,14 +1,13 @@
 // Shell and art come from cache and refresh in the background. Cards prefer the network.
-const CACHE = 'freakbot-v2';
+const CACHE = 'freakbot-v4';
 
 const fonts = [
-  'cormorant-garamond-latin-500-normal',
-  'cormorant-garamond-latin-600-normal',
-  'cormorant-garamond-latin-500-italic',
-  'eb-garamond-latin-400-normal',
-  'eb-garamond-latin-500-normal',
-  'eb-garamond-latin-400-italic',
-  'eb-garamond-latin-500-italic',
+  'michroma-latin-400-normal',
+  'barlow-latin-400-normal',
+  'barlow-latin-500-normal',
+  'barlow-latin-600-normal',
+  'barlow-condensed-latin-600-normal',
+  'barlow-condensed-latin-700-normal',
   'vt323-latin-400-normal',
 ].map((f) => `assets/fonts/${f}.woff2`);
 
