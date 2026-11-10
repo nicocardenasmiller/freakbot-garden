@@ -22,4 +22,12 @@ export function greetingFor(plants) {
   return thirsty ? pick(THIRSTY, thirsty.topic) : pick(IDLE);
 }
 
+const POKED = ['wepa!', 'oye, cosquillas.', 'dale, pana.', 'bacan.', 'pucha, con cuidado.', 'que pasa, po?', 'aqui estoy, cachai.'];
+
+export function pokeLine(asleep, fedUp) {
+  if (fedUp) return 'ya po, stop poking me.';
+  if (asleep) return 'ah! no estaba durmiendo.';
+  return pick(POKED);
+}
+
 export const waterLine = (topic, grade, grew) => (grew ? pick(GREW, topic) : pick(grade === 'missed' ? MISSED : WATERED, topic));

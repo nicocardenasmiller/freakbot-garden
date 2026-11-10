@@ -19,6 +19,8 @@ public class FreakbotWidgetPlugin extends Plugin {
             .putInt("freezes", call.getInt("freezes", 0))
             .putString("lastDay", call.getString("lastDay", ""))
             .putString("doneDay", call.getString("doneDay", ""))
+            .putString("week", call.getString("week", "0000000"))
+            .putString("weekEnd", call.getString("weekEnd", ""))
             .apply();
         StreakWidget.refresh(context);
         call.resolve();

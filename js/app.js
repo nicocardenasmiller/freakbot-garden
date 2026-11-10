@@ -1,5 +1,5 @@
 import { h } from './dom.js';
-import { buildPlants, ensureDay, layoutRooms, localDay, recompute, timeBand, updatePeaks } from './rules.js';
+import { addDays, buildPlants, ensureDay, layoutRooms, localDay, recompute, timeBand, updatePeaks } from './rules.js';
 import { createStore } from './store.js';
 import { renderCards } from './cards.js';
 import { ROOMS, playWater, renderGarden } from './garden.js';
@@ -51,7 +51,13 @@ function pushWidget() {
   const widget = window.Capacitor?.Plugins?.FreakbotWidget;
   if (!widget) return;
   const { streak, freezes, lastDay } = store.save.profile;
-  widget.update({ streak, freezes, lastDay: lastDay ?? '', doneDay: ctx.todayEntry()?.done ? today() : '' }).catch(() => {});
+  const week = [6, 5, 4, 3, 2, 1, 0]
+    .map((back) => {
+      const entry = store.save.days[addDays(today(), -back)];
+      return entry?.done ? '1' : entry?.frozen ? 'f' : '0';
+    })
+    .join('');
+  widget.update({ streak, freezes, lastDay: lastDay ?? '', doneDay: ctx.todayEntry()?.done ? today() : '', week, weekEnd: today() }).catch(() => {});
 }
 
 let tab = 'garden';

@@ -191,7 +191,7 @@ def viewport(s):
         li=math.hypot(x-lx,y-ly)
         s.im.putpixel((x,y),hx(tones[2 if li<24 else 1 if li<42 else 0]))
         if d>rad-1.2: s.im.putpixel((x,y),hx(b['limb']))
-    bands=[(62,3),(68,2),(74,3)]
+    bands=[]  # clouds are drawn live by js/windowfx.js
     for y,h in bands:
         x0=cl.randint(30,44); w=cl.randint(14,24)
         for yy in range(y,y+h):
@@ -202,8 +202,6 @@ def viewport(s):
         for _ in range(40):
             x,y=cl.randint(30,71),cl.randint(58,79)
             if (x,y) in s.sky and math.hypot(x-cx,y-cy)<rad-2: s.im.putpixel((x,y),hx(AMBER))
-    # distant station
-    for x,y,c in [(33,38,'#3A4A78'),(34,38,'#3A4A78'),(35,38,'#3A4A78'),(36,38,'#3A4A78'),(37,38,'#3A4A78'),(35,37,'#3A4A78'),(35,39,'#3A4A78'),(38,38,ROSE)]: px(x,y,c)
     # frame
     for i in range(8):
         line(s,r[i],r[(i+1)%8],S4)
@@ -592,6 +590,36 @@ for t in BAND_NAMES:
     for col,kind in enumerate(('small','large','hanging')):
         add(pot_cell(kind),col,8,shade=False)
     sheet.save(f'f_{t}_plants.png')
+# interface materials, tiled at 4x so the UI shares the scene's pixel grid
+UI_MUL={'morning':(1.0,.98,.92),'day':(1.0,1.0,1.0),'golden':(1.0,.92,.82),'night':(.3,.33,.46)}
+def ui_tile(band,size,base,plate):
+    mul=UI_MUL[band]; r=random.Random(9); im=Image.new('RGB',(size,size)); p=im.load(); cells={}
+    for y in range(size):
+        for x in range(size):
+            key=(x//16,y//16)
+            if key not in cells: cells[key]=1+r.uniform(-.018,.018) if plate else 1
+            f=cells[key]+(BAYER[y%4][x%4]/15-.5)*(.05 if plate else .03)
+            p[x,y]=sh(base,f)
+    if plate:
+        for y in (0,48):
+            for x in range(size): p[x,y]=sh(S0,1.0); p[x,(y+1)%size]=sh(S4,1.0)
+        for x in (0,48):
+            for y in range(size):
+                if 18<=y%48<=46: p[x,y]=sh(base,.86)
+        for x,y in ((4,22),(44,22),(52,22),(92,22),(4,70),(44,70),(52,70),(92,70)):
+            p[x,y]=sh(S0,1.0); p[x+1,y]=sh(S4,1.0)
+        for _ in range(26):
+            x,y=r.randrange(size),r.randrange(size)
+            for k in range(r.randint(2,9)):
+                if k%2==0 or r.random()<.5:
+                    yy=(y+k)%size; p[x,yy]=tuple(int(v*.93) for v in p[x,yy])
+    for y in range(size):
+        for x in range(size):
+            p[x,y]=tuple(max(0,min(255,int(v*m))) for v,m in zip(p[x,y],mul))
+    return im
+for t in BAND_NAMES:
+    ui_tile(t,96,'#D9DAD4',True).save(f'ui_{t}_plate.png')
+    ui_tile(t,64,'#EFEEE8',False).save(f'ui_{t}_panel.png')
 ims=[build(t,with_bot=False).resize((W*4,H*4),Image.NEAREST) for t in BAND_NAMES]+[build('day',with_bot=False,room='archive').resize((W*4,H*4),Image.NEAREST)]
 out=Image.new('RGB',(sum(i.width for i in ims)+40,ims[0].height),(255,255,255)); x=0
 for i in ims: out.paste(i,(x,0)); x+=i.width+10

@@ -217,3 +217,52 @@ h1 { font: 400 14px/30px var(--title); letter-spacing: 0.02em; text-transform: u
 .papers { margin: 6px 0 0; padding-left: 16px; font-size: 15px; font-weight: 400; }
 .papers li + li { margin-top: 4px; }
 .primary:disabled { background: var(--line); color: var(--text-muted); box-shadow: none; }
+
+/* Pixel materials: the interface shares the scene's 4 px grid, textures and light. */
+:root { --plate: url('../art/out/ui_day_plate.png'); --panel-tex: url('../art/out/ui_day_panel.png'); --hi: rgba(255,255,255,.75); --lo: rgba(28,32,40,.32);
+  --notch: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
+:root[data-band='morning'] { --ink: #D9D6C8; --panel: #EFEADA; --panel-raised: #F8F2E2; --plate: url('../art/out/ui_morning_plate.png'); --panel-tex: url('../art/out/ui_morning_panel.png'); }
+:root[data-band='golden'] { --ink: #D9CBB4; --panel: #EFE2CE; --panel-raised: #F8ECDA; --line: #A99C84; --text-muted: #5E5244; --plate: url('../art/out/ui_golden_plate.png'); --panel-tex: url('../art/out/ui_golden_panel.png'); --hi: rgba(255,236,204,.75); --lo: rgba(60,34,16,.36); }
+:root[data-band='night'] { --plate: url('../art/out/ui_night_plate.png'); --panel-tex: url('../art/out/ui_night_panel.png'); --hi: rgba(170,186,220,.3); --lo: rgba(0,0,0,.5); }
+
+body, .card, .settings, .sheet { image-rendering: pixelated; }
+body { background: var(--ink) var(--plate) 0 0 / 384px 384px; }
+.tabs, .top, #action { background: none; }
+.stage { box-shadow: inset 0 4px 0 var(--bar), inset 0 8px 0 var(--lo), inset 0 -4px 0 var(--bar); position: relative; }
+.stage .scene { z-index: 0; }
+
+.card, .settings, .sheet {
+  background: var(--panel) var(--panel-tex) 0 0 / 256px 256px;
+  border: 4px solid var(--rule);
+  clip-path: var(--notch);
+}
+.card { box-shadow: inset 4px 4px 0 var(--hi), inset -4px -4px 0 var(--lo); padding: 0 16px 14px; }
+.sheet { box-shadow: inset 4px 4px 0 var(--hi), inset -4px -4px 0 var(--lo); }
+.kicker { margin: 0 -16px 12px; padding: 8px 16px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.25); }
+.kicker::before { width: 12px; height: 12px; vertical-align: -2px; }
+
+.primary, .grade, .room-arrow {
+  clip-path: var(--notch);
+  box-shadow: inset 8px 0 0 var(--red), inset 0 4px 0 rgba(255,255,255,.2), inset 0 -4px 0 rgba(0,0,0,.35);
+}
+.primary:active, .grade:active { box-shadow: inset 8px 0 0 var(--red), inset 0 4px 0 rgba(0,0,0,.35), inset 0 -4px 0 rgba(255,255,255,.1); }
+.room-arrow { box-shadow: inset 0 4px 0 rgba(255,255,255,.2), inset 0 -4px 0 rgba(0,0,0,.35); }
+.room-label { clip-path: var(--notch); padding: 6px 10px; }
+
+.point, .option, .settings input { border-width: 4px; background: var(--panel-raised); clip-path: var(--notch); box-shadow: inset 4px 4px 0 var(--hi); }
+.point { padding: 8px 10px 8px 34px; }
+.point::before { left: 10px; top: 10px; width: 12px; height: 12px; border-width: 4px; }
+.point.hit { box-shadow: inset 4px 4px 0 rgba(0,0,0,.35); }
+
+.tabs { border-top: 4px solid var(--rule); box-shadow: inset 0 4px 0 var(--hi); }
+.tabs button { border-right: 4px solid var(--lo); }
+.tabs button.active { box-shadow: inset 4px 4px 0 rgba(0,0,0,.35); }
+
+.cell::before { width: 8px; height: 8px; box-shadow: inset 2px 2px 0 rgba(255,255,255,.35); }
+.slip { border-width: 4px; clip-path: var(--notch); background: var(--panel) var(--panel-tex) 0 0 / 256px 256px; box-shadow: inset 4px 4px 0 var(--hi), inset -4px -4px 0 var(--lo); }
+.written { background: repeating-linear-gradient(transparent 0 26px, var(--line) 26px 28px); }
+
+.window-fx { position: absolute; left: 0; top: 0; z-index: 1; width: 388px; height: 560px; image-rendering: pixelated; pointer-events: none; }
+.pokeable { cursor: pointer; }
+.moving .blink { display: none; }
+.spark { position: absolute; width: 8px; height: 8px; background: #E0A92E; box-shadow: inset 2px 2px 0 #F8F7F2; }

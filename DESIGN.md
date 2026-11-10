@@ -1,6 +1,6 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.9 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4; 1.9: the Archive has its own architecture, 5.7)
+Version 2.0 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4; 1.9: the Archive has its own architecture, 5.7; 2.0: interface materials, live window, tap reactions, pixel widget)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
@@ -71,7 +71,8 @@ The hydroponics bay of a flying library, a derelict ship that Freakbot keeps run
 - Left: research console with a terminal and stacked books. Above it the red LIBROS sign, the one hot light in the room.
 - Right: three-tier grow rack in a dark glass bay with red light bars and 6 small pots.
 - Floor: metal deck, Freakbot's round charging pad centre, big floor bays left and right.
-- Freakbot stands on the pad; brass watering can beside him.
+- Freakbot stands on the pad; brass watering can beside him. Tapping him makes him jump, wiggle or cheer with a line. Four quick taps annoy him.
+- The view outside is live (`js/windowfx.js`): stars twinkle, clouds drift or city lights flicker, a ship crosses, the odd shooting star. It freezes under reduced motion.
 
 Color: the room and the interface share one palette (section 4.4). Warm white hull, black, signal red, blue, yellow, foliage cool. Depth matters more than whiteness: sections brighten toward the window, the nearest section is dark, ribs throw shadows, and furniture has side faces and contact shadows. Light is one dithered pass in `art/final.py → grade()`: falloff from the window, the viewport mirrored in the deck, haze around the frame, form shading on sprites, grime on the hull. Everything is scaled to Freakbot: the console at his chest, the terminal the size of his head, the rack about twice his height, thin ribs. Avoid pure red next to bright green.
 
@@ -106,7 +107,8 @@ Implementation: render the room once per band (pre-baked PNGs) plus Freakbot and
 - Barlow Condensed (600, 700): labels, clock, tabs, sources. Label style is 12 to 13 px, wide tracking, uppercase.
 - VT323: only Freakbot's voice (slips) and nothing else.
 - No fifth family.
-- The interface works like ship signage: black label bars, small square color markers, 2 px rules, square corners.
+- The interface works like ship signage: black label bars and small square color markers.
+- It is built from the ship's materials, on the scene's 4 px grid: dithered hull and panel textures per time band (`ui_<band>_plate/panel.png` from `art/final.py`), 4 px bevels and rules, notched corners, no 1 or 2 px lines. Real GPU shaders are not used.
 
 ### 4.6 Freakbot
 - Base sprite: his Mac app's code (`freakbot/web/freakbot.js` v1.3.1), outfit: tin can, bare metal paint, bottlecap propeller, spring arms, wheel.
@@ -241,7 +243,7 @@ Felix accepted that questions are public (they summarize published papers).
 
 ### 6.7 Android app
 - `app/` is a Capacitor shell (id `garden.freakbot.app`) that loads the live site, so web changes reach the phone without a reinstall. Only native changes need a new APK.
-- It adds a daily 19:35 reminder that only fires when today's cards are not done (a day finished on the Mac counts once the phone app has opened), and a home-screen streak widget. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
+- It adds a daily 19:35 reminder that only fires when today's cards are not done (a day finished on the Mac counts once the phone app has opened), and a home-screen streak widget drawn as pixel art on a 2 dp grid: Freakbot in a mood that follows the day, a water drop and streak count (gold from 30 days), the last 7 days as squares, and a status in Spanish. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
 - Installed directly on the phone, not through the Play Store. Build with `cd app/android && ./gradlew assembleDebug`.
 - The Mac keeps using the website.
 

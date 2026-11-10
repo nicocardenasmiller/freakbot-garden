@@ -1,6 +1,7 @@
 import { h } from './dom.js';
 import { SPECIES } from './rules.js';
-import { greetingFor, waterLine } from './lines.js';
+import { greetingFor, pokeLine, waterLine } from './lines.js';
+import { startWindow } from './windowfx.js';
 
 const SCALE = 4;
 const CELL_W = 26;
@@ -67,6 +68,7 @@ function buildScene(ctx, plants, roomIndex) {
   if (can) can.style.zIndex = 125;
   const plantEls = new Map(plants.map((p) => [p.topic, renderPlant(p, band)]));
   const scene = h('div', { class: 'scene' }, room, ...plantEls.values(), can, bot);
+  startWindow(scene, ROOMS[roomIndex].id, band);
   return { scene, bot, can, band, plantEls };
 }
 
@@ -75,6 +77,56 @@ function showSlip(scene, text) {
   const slip = h('button', { class: 'slip', onclick: (e) => { e.stopPropagation(); slip.remove(); } }, text);
   scene.append(slip);
   setTimeout(() => slip.remove(), 6000);
+}
+
+// Freakbot reacts when tapped. Every move is stepped on the art's 4 px grid.
+const MOVES = {
+  jump: [[0, -2], [0, -4], [0, -5], [0, -4], [0, -2], [0, 0], [0, -1], [0, 0]],
+  wiggle: [[-1, 0], [1, 0], [-1, 0], [1, 0], [-1, 0], [1, 0], [0, 0]],
+  cheer: [[0, -1], [0, 0], [0, -1], [0, 0], [0, -1], [0, 0], [0, -1], [0, 0]],
+};
+let pokes = [];
+let poking = false;
+
+function poke(scene, bot, band) {
+  const now = Date.now();
+  pokes = [...pokes.filter((t) => now - t < 2500), now];
+  const asleep = band === 'night';
+  const fed_up = pokes.length >= 4;
+  showSlip(scene, pokeLine(asleep, fed_up));
+  if (poking || reduced()) return;
+  poking = true;
+
+  const rest = bot.querySelector('.rest');
+  const idle = rest.src;
+  const name = fed_up ? 'wiggle' : asleep ? 'jump' : ['jump', 'wiggle', 'cheer'][Math.floor(Math.random() * 3)];
+  bot.classList.add('moving');
+  if (asleep) rest.src = 'art/out/fr_night_fbo.png';
+  if (name === 'cheer') rest.src = `art/out/fr_${band}_fbw.png`;
+
+  const sparks = name === 'cheer'
+    ? [[-3, 6], [33, 3], [-1, 18], [34, 16]].map(([x, y]) => {
+        const spark = h('div', { class: 'spark' });
+        spark.style.left = px(x);
+        spark.style.top = px(y);
+        bot.append(spark);
+        return spark;
+      })
+    : [];
+  let step = 0;
+  const timer = setInterval(() => {
+    const [dx, dy] = MOVES[name][step];
+    bot.style.transform = `translate(${dx * SCALE}px, ${dy * SCALE}px)`;
+    sparks.forEach((s, i) => { s.style.visibility = (step + i) % 2 ? 'hidden' : 'visible'; });
+    step += 1;
+    if (step < MOVES[name].length) return;
+    clearInterval(timer);
+    sparks.forEach((s) => s.remove());
+    bot.style.transform = '';
+    rest.src = idle;
+    bot.classList.remove('moving');
+    poking = false;
+  }, TICK_MS);
 }
 
 let greeted = false;
@@ -100,7 +152,12 @@ function roomNav(ctx, roomCount) {
 export function renderGarden(ctx) {
   const rooms = ctx.gardenNow();
   ctx.room = Math.min(ctx.room, Math.max(0, rooms.length - 1));
-  const { scene } = buildScene(ctx, rooms[ctx.room] ?? [], ctx.room);
+  const { scene, bot, band } = buildScene(ctx, rooms[ctx.room] ?? [], ctx.room);
+  bot.classList.add('pokeable');
+  bot.addEventListener('click', (e) => {
+    e.stopPropagation();
+    poke(scene, bot, band);
+  });
   const nav = roomNav(ctx, rooms.length);
   const stage = h('div', { class: 'stage' }, scene);
   if (nav) {

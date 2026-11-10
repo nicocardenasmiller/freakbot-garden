@@ -1,5 +1,5 @@
 // Shell and art come from cache and refresh in the background. Cards prefer the network.
-const CACHE = 'freakbot-v7';
+const CACHE = 'freakbot-v8';
 
 const fonts = [
   'michroma-latin-400-normal',
@@ -12,7 +12,7 @@ const fonts = [
 ].map((f) => `assets/fonts/${f}.woff2`);
 
 const art = [
-  ...['morning', 'day', 'golden', 'night'].flatMap((b) => [`f_${b}_bg`, `f_${b}_archive_bg`, `f_${b}_plants`]),
+  ...['morning', 'day', 'golden', 'night'].flatMap((b) => [`f_${b}_bg`, `f_${b}_archive_bg`, `f_${b}_plants`, `ui_${b}_plate`, `ui_${b}_panel`]),
   ...['morning', 'day', 'golden'].flatMap((b) => [`fr_${b}_fbo`, `fr_${b}_fbb`, `fr_${b}_fbw`, `fr_${b}_can`]),
   'fr_night_fbn', 'fr_night_fbo', 'fr_night_fbw',
 ].map((f) => `art/out/${f}.png`);
@@ -28,6 +28,7 @@ const SHELL = [
   'js/garden.js',
   'js/herbarium.js',
   'js/lines.js',
+  'js/windowfx.js',
   'js/rules.js',
   'js/settings.js',
   'js/store.js',
