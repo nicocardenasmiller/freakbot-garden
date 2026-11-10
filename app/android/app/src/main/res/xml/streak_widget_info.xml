@@ -3,7 +3,7 @@
     android:description="@string/widget_description"
     android:initialLayout="@layout/streak_widget"
     android:minWidth="170dp"
-    android:minHeight="80dp"
+    android:minHeight="60dp"
     android:previewImage="@drawable/widget_bot"
     android:resizeMode="horizontal|vertical"
     android:targetCellHeight="1"
