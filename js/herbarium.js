@@ -57,7 +57,7 @@ function renderSheet(ctx, plant) {
     'article',
     { class: 'card' },
     h('p', { class: 'smallcaps kicker' }, plant.species),
-    h('button', { class: 'quiet back', onclick: back }, 'Back to herbarium'),
+    h('button', { class: 'quiet back-link', onclick: back }, 'Back to herbarium'),
     h('div', { class: 'specimen' }, specimen(plant, 5)),
     h('h2', {}, topicName(plant.topic)),
     h('p', { class: 'latin' }, LATIN[plant.species]),
