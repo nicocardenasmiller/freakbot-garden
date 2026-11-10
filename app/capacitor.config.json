@@ -1,0 +1,12 @@
+{
+  "appId": "garden.freakbot.app",
+  "appName": "Freakbot",
+  "webDir": "www",
+  "server": {
+    "url": "https://freakbot.nicolascardenasmiller.com",
+    "cleartext": false
+  },
+  "android": {
+    "backgroundColor": "#D9DAD4"
+  }
+}

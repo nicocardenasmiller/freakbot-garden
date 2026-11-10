@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Freakbot</string>
+    <string name="title_activity_main">Freakbot</string>
+    <string name="package_name">garden.freakbot.app</string>
+    <string name="custom_url_scheme">garden.freakbot.app</string>
+    <string name="widget_description">Your Freakbot streak</string>
+</resources>

@@ -1,6 +1,6 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.6 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5)
+Version 1.7 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
@@ -237,6 +237,12 @@ Felix accepted that questions are public (they summarize published papers).
 - Writes go to localStorage first (works offline), then to GitHub through the Contents API (`PUT /repos/{owner}/freakbot-garden-save/contents/save.json` with the file `sha`).
 - On conflict (sha mismatch): fetch, merge by taking the newer `at` per card and per day (a done day always beats an unfinished one), recompute profile, retry once.
 - Auth: a fine-grained personal access token with Contents read/write on `freakbot-garden-save` only. Entered once per device in Settings, stored in localStorage, never committed, never logged. Show "not syncing" state clearly when missing or rejected.
+
+### 6.7 Android app
+- `app/` is a Capacitor shell (id `garden.freakbot.app`) that loads the live site, so web changes reach the phone without a reinstall. Only native changes need a new APK.
+- It adds a home-screen streak widget. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
+- Installed directly on the phone, not through the Play Store. Build with `cd app/android && ./gradlew assembleDebug`.
+- The Mac keeps using the website.
 
 ---
 

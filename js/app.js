@@ -37,6 +37,14 @@ const VIEWS = {
   journal: () => later('Journal', 'The first pages are still being written.'),
 };
 
+// In the Android app, keep the home-screen widget in step with the streak.
+function pushWidget() {
+  const widget = window.Capacitor?.Plugins?.FreakbotWidget;
+  if (!widget) return;
+  const { streak, freezes, lastDay } = store.save.profile;
+  widget.update({ streak, freezes, lastDay: lastDay ?? '', doneDay: ctx.todayEntry()?.done ? today() : '' }).catch(() => {});
+}
+
 let tab = 'garden';
 
 function render() {
@@ -134,6 +142,7 @@ async function boot() {
   $('#strip').addEventListener('click', () => openSettings(store));
   document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => go(b.dataset.tab)));
   store.subscribe(paintStrip);
+  store.subscribe(pushWidget);
 
   tick();
   paintStrip();
@@ -143,6 +152,7 @@ async function boot() {
   await Promise.race([store.sync(), new Promise((resolve) => setTimeout(resolve, FIRST_SYNC_WAIT_MS))]);
   prepareToday();
   paintStrip();
+  pushWidget();
   render();
 
   setInterval(tick, 1000);
