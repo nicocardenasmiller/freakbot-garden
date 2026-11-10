@@ -176,3 +176,44 @@ h1 { font: 400 14px/30px var(--title); letter-spacing: 0.02em; text-transform: u
 .row { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
 .row .primary { flex: 1; }
 .quiet { padding: 0 8px; height: 44px; color: var(--text-muted); font: 600 13px/1 var(--label); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.plant { position: absolute; width: 104px; height: 136px; }
+.cell-art { position: absolute; left: 0; top: 0; image-rendering: pixelated; background-repeat: no-repeat; }
+.can { z-index: 125; }
+.thirst-drop { position: absolute; left: 48px; top: 0; width: 8px; height: 12px; background: var(--day-blue, #2B6CA3); box-shadow: 0 -4px 0 -2px #2B6CA3; }
+.water-drop { position: absolute; width: 8px; height: 12px; background: #9FD8FF; box-shadow: 0 0 0 2px #1C2028; }
+.moving { animation: none; }
+
+.slip {
+  position: absolute;
+  left: 34px;
+  top: 14px;
+  z-index: 150;
+  max-width: 300px;
+  padding: 6px 10px;
+  text-align: left;
+  background: var(--panel);
+  color: var(--text);
+  border: 2px solid var(--rule);
+  font: 400 19px/1.05 'VT323', monospace;
+  transform: rotate(-1.5deg);
+}
+
+.room-nav { position: absolute; left: 22px; right: 22px; bottom: 6px; z-index: 145; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+.room-arrow { width: 34px; height: 30px; background: var(--bar); color: var(--bar-text); font: 700 20px/1 var(--label); pointer-events: auto; }
+.room-label { padding: 5px 8px; background: var(--bar); color: var(--bar-text); }
+
+.herbarium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; height: 100%; padding: 10px 14px; overflow-y: auto; align-content: start; }
+.sheet { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 6px 4px 8px; background: var(--panel); color: var(--text); border: 2px solid var(--rule); }
+.sheet-art { position: relative; display: block; width: 78px; height: 102px; }
+.sheet-name { font: 600 12px/1.1 var(--body); letter-spacing: -0.01em; text-align: center; overflow-wrap: break-word; max-width: 100%; }
+.sheet-state.dry { color: var(--red); }
+.specimen { position: relative; width: 130px; height: 170px; margin: 4px auto 0; }
+.latin { font-style: italic; font-weight: 400; color: var(--text-muted); }
+.back { display: block; height: 26px; padding: 0; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin-top: 10px; align-items: baseline; }
+.facts dd { margin: 0; color: var(--text); }
+.facts dd::first-letter { text-transform: uppercase; }
+.papers { margin: 6px 0 0; padding-left: 16px; font-size: 15px; font-weight: 400; }
+.papers li + li { margin-top: 4px; }
+.primary:disabled { background: var(--line); color: var(--text-muted); box-shadow: none; }

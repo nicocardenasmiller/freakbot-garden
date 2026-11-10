@@ -40,6 +40,7 @@ export const emptySave = () => ({
   v: 1,
   responses: {},
   days: {},
+  peaks: {},
   profile: { streak: 0, best: 0, freezes: 0, water: 0, daysDone: 0, lastDay: null, unlocked: [] },
 });
 
@@ -111,7 +112,7 @@ export function ensureDay(save, cards, day, now) {
 
 export function gradeCard(save, cardId, day, answer, now) {
   const entry = save.days[day];
-  if (!entry || !entry.cards.includes(cardId)) return;
+  if (!entry || !(entry.cards.includes(cardId) || entry.extra?.includes(cardId))) return;
   if (save.responses[cardId]?.day === day) return;
   save.responses[cardId] = { ...answer, at: now, day };
   entry.water += WATER[answer.grade];
@@ -182,7 +183,9 @@ export function mergeSaves(a, b, today) {
     const [x, y] = [a.days[d], b.days[d]];
     const entry = { ...(x && y ? pickDay(x, y) : x ?? y) };
     // Two devices can each grade different cards of one day. Neither entry alone has all the water.
-    const earned = entry.cards
+    const extra = [...new Set([...(x?.extra ?? []), ...(y?.extra ?? [])])];
+    if (extra.length) entry.extra = extra;
+    const earned = [...entry.cards, ...extra]
       .filter((id) => out.responses[id]?.day === d)
       .reduce((sum, id) => sum + WATER[out.responses[id].grade], 0);
     entry.water = Math.max(entry.water, earned);
@@ -190,8 +193,125 @@ export function mergeSaves(a, b, today) {
     out.days[d] = entry;
   }
 
+  for (const peaks of [a.peaks ?? {}, b.peaks ?? {}]) {
+    for (const [topic, peak] of Object.entries(peaks)) out.peaks[topic] = Math.max(out.peaks[topic] ?? 0, peak);
+  }
+
   out.profile.unlocked = [...new Set([...(a.profile?.unlocked ?? []), ...(b.profile?.unlocked ?? [])])];
   return recompute(out, today);
+}
+
+// ---- Plants (DESIGN.md 5.1 to 5.3 and 5.7) ----
+
+export const STAGES = ['seed', 'sprout', 'sapling', 'bloom', 'fruit'];
+export const SPECIES = ['limonero', 'copihue', 'araucaria', 'quisco', 'nalca', 'tomatera', 'maravilla', 'liuto'];
+export const ROOM_SIZE = 12;
+const SAPLING = 2;
+const RACK_SLOTS = [0, 1, 2, 3, 4, 5];
+const BIG_SLOTS = [6, 7, 8, 9, 10, 11];
+
+export function topicStats(cards, responses) {
+  const stats = new Map();
+  for (const card of cards) {
+    for (const topic of card.topics ?? []) {
+      if (!stats.has(topic)) stats.set(topic, { questions: 0, answered: 0, got: 0, partial: 0, lastDay: null });
+      const s = stats.get(topic);
+      s.questions += 1;
+      const r = responses[card.id];
+      if (!r) continue;
+      s.answered += 1;
+      if (r.grade === 'got') s.got += 1;
+      if (r.grade === 'partial') s.partial += 1;
+      if (!s.lastDay || r.day > s.lastDay) s.lastDay = r.day;
+    }
+  }
+  return stats;
+}
+
+export const masteryOf = (s) => (s.answered ? (s.got + 0.5 * s.partial) / s.answered : 0);
+
+export function stageFor(s, peak = 0) {
+  const m = masteryOf(s);
+  let stage = 0;
+  if (s.answered >= 1) stage = 1;
+  if (s.answered >= 5 && m >= 0.4) stage = 2;
+  if (s.answered >= 10 && m >= 0.6) stage = 3;
+  if (s.answered >= 15 && m >= 0.8) stage = 4;
+  // A plant can lose its fruit, but never shrinks below sapling once it got there.
+  return peak >= SAPLING ? Math.max(stage, SAPLING) : stage;
+}
+
+export function updatePeaks(save, cards) {
+  save.peaks ??= {};
+  for (const [topic, s] of topicStats(cards, save.responses)) {
+    const stage = stageFor(s, save.peaks[topic] ?? 0);
+    if (stage > (save.peaks[topic] ?? 0)) save.peaks[topic] = stage;
+  }
+}
+
+const isDue = (card, responses, day) => {
+  const r = responses[card.id];
+  return !r || !(r.grade === 'got' && dayDiff(r.day, day) < 3);
+};
+
+// 0 fine, 1 thirsty, 2 wilted. A plant nobody has answered yet is a seed waiting, not neglected.
+export function thirstFor(s, topicCards, responses, day) {
+  if (!s.lastDay || !topicCards.some((c) => isDue(c, responses, day))) return 0;
+  const since = dayDiff(s.lastDay, day);
+  if (since >= 21) return 2;
+  return since >= 7 ? 1 : 0;
+}
+
+// `appearance` lists topics oldest first. Topics missing from `chosen` cycle through the species.
+export function buildPlants(cards, appearance, chosen, save, day) {
+  const stats = topicStats(cards, save.responses);
+  return appearance
+    .filter((topic) => stats.has(topic))
+    .map((topic, i) => {
+      const s = stats.get(topic);
+      const topicCards = cards.filter((c) => c.topics?.includes(topic));
+      return {
+        topic,
+        species: chosen[topic] ?? SPECIES[i % SPECIES.length],
+        stage: stageFor(s, save.peaks?.[topic] ?? 0),
+        thirst: thirstFor(s, topicCards, save.responses, day),
+        mastery: masteryOf(s),
+        answered: s.answered,
+        questions: s.questions,
+      };
+    });
+}
+
+// Young plants go on the rack, grown ones on the floor and in the hanging baskets, spilling over when full.
+export function layoutRooms(plants, roomCount) {
+  const rooms = [];
+  for (let i = 0; i < roomCount && i * ROOM_SIZE < plants.length; i += 1) {
+    const free = { rack: [...RACK_SLOTS], big: [...BIG_SLOTS] };
+    rooms.push(
+      plants.slice(i * ROOM_SIZE, (i + 1) * ROOM_SIZE).map((plant) => {
+        const [first, second] = plant.stage <= SAPLING ? ['rack', 'big'] : ['big', 'rack'];
+        const slot = free[first].length ? free[first].shift() : free[second].shift();
+        return { ...plant, room: i, slot };
+      }),
+    );
+  }
+  return rooms;
+}
+
+// The most overdue card of a topic that has not been answered today, for "Water this plant".
+export function pickForTopic(cards, topic, responses, day) {
+  const weight = (card) => {
+    const r = responses[card.id];
+    return r ? REVIEW_WEIGHT[r.grade] * Math.min(4, 1 + dayDiff(r.day, day) / 3) : 100;
+  };
+  const options = cards.filter((c) => c.topics?.includes(topic) && responses[c.id]?.day !== day && isDue(c, responses, day));
+  return options.sort((a, b) => weight(b) - weight(a))[0]?.id ?? null;
+}
+
+export function addExtraCard(save, cardId, day, now) {
+  const entry = (save.days[day] ??= { cards: [], done: false, frozen: false, water: 0, at: now });
+  entry.extra = [...new Set([...(entry.extra ?? []), cardId])];
+  entry.at = now;
 }
 
 // Key order differs between devices, so compare with sorted keys.

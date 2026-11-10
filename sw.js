@@ -1,5 +1,5 @@
 // Shell and art come from cache and refresh in the background. Cards prefer the network.
-const CACHE = 'freakbot-v5';
+const CACHE = 'freakbot-v6';
 
 const fonts = [
   'michroma-latin-400-normal',
@@ -12,11 +12,9 @@ const fonts = [
 ].map((f) => `assets/fonts/${f}.woff2`);
 
 const art = [
-  'f_morning_bg', 'f_day_bg', 'f_golden_bg', 'f_night_bg',
-  'fr_morning_fbo', 'fr_morning_fbb', 'fr_morning_can',
-  'fr_day_fbo', 'fr_day_fbb', 'fr_day_can',
-  'fr_golden_fbo', 'fr_golden_fbb', 'fr_golden_can',
-  'fr_night_fbn',
+  ...['morning', 'day', 'golden', 'night'].flatMap((b) => [`f_${b}_bg`, `f_${b}_archive_bg`, `f_${b}_plants`]),
+  ...['morning', 'day', 'golden'].flatMap((b) => [`fr_${b}_fbo`, `fr_${b}_fbb`, `fr_${b}_fbw`, `fr_${b}_can`]),
+  'fr_night_fbn', 'fr_night_fbo', 'fr_night_fbw',
 ].map((f) => `art/out/${f}.png`);
 
 const SHELL = [
@@ -28,6 +26,8 @@ const SHELL = [
   'js/cards.js',
   'js/dom.js',
   'js/garden.js',
+  'js/herbarium.js',
+  'js/lines.js',
   'js/rules.js',
   'js/settings.js',
   'js/store.js',
@@ -88,6 +88,6 @@ async function staleWhileRevalidate(event) {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
-  if (url.pathname.includes('/data/cards/')) event.respondWith(networkFirst(event.request));
+  if (url.pathname.includes('/data/')) event.respondWith(networkFirst(event.request));
   else event.respondWith(staleWhileRevalidate(event));
 });

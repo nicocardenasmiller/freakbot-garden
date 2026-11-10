@@ -3,7 +3,7 @@
 <title>Freakbot tests</title>
 <pre id="out">running</pre>
 <script type="module">
-import { addDays, emptySave, ensureDay, gradeCard, gradeFromPoints, mergeSaves, pickDaily, recompute, stable, timeBand } from './js/rules.js';
+import { addDays, addExtraCard, buildPlants, emptySave, ensureDay, gradeCard, gradeFromPoints, layoutRooms, mergeSaves, pickDaily, pickForTopic, recompute, stable, stageFor, thirstFor, timeBand, topicStats, updatePeaks } from './js/rules.js';
 import { createStore } from './js/store.js';
 
 const results = [];
@@ -178,6 +178,75 @@ await test('merge keeps the newer response and a done day over a newer unfinishe
   b.days['2026-11-01'] = { cards: [], done: false, frozen: false, water: 0, at: '2026-11-01T02:00:00Z' };
   const m = mergeSaves(a, b, '2026-11-02');
   eq([m.responses.c0.grade, m.days['2026-11-01'].done, m.days['2026-11-01'].water], ['got', true, 3]);
+});
+
+const stat = (answered, got, partial = 0, lastDay = '2026-11-01') => ({ questions: answered, answered, got, partial, lastDay });
+
+await test('stage thresholds match 5.2', () => {
+  eq([stageFor(stat(0, 0)), stageFor(stat(1, 0)), stageFor(stat(5, 2)), stageFor(stat(5, 1)), stageFor(stat(10, 6)), stageFor(stat(15, 12))], [0, 1, 2, 1, 3, 4]);
+});
+
+await test('a plant loses fruit but never drops below sapling', () => {
+  eq([stageFor(stat(15, 1), 4), stageFor(stat(6, 0), 2), stageFor(stat(6, 0), 1)], [2, 2, 1]);
+});
+
+const topicDeck = (n, topic = 'T') => Array.from({ length: n }, (_, i) => ({ id: `${topic}${i}`, paper: 'P', topics: [topic] }));
+
+await test('thirsty at 7 days, wilted at 21, and answering clears it', () => {
+  const cards = topicDeck(3);
+  const r = { T0: { grade: 'missed', day: '2026-11-01' } };
+  const of = (day, res = r) => thirstFor(topicStats(cards, res).get('T'), cards, res, day);
+  eq([of('2026-11-07'), of('2026-11-08'), of('2026-11-22')], [0, 1, 2]);
+  eq(of('2026-11-22', { ...r, T1: { grade: 'got', day: '2026-11-22' } }), 0);
+});
+
+await test('species come from plants.json, then cycle, in order of first appearance', () => {
+  const cards = [...topicDeck(1, 'A'), ...topicDeck(1, 'B'), ...topicDeck(1, 'C')];
+  eq(buildPlants(cards, ['A', 'B', 'C'], { B: 'nalca' }, emptySave(), '2026-11-09').map((p) => p.species), ['limonero', 'nalca', 'araucaria']);
+});
+
+await test('12 plants per room, young on the rack, grown on the floor, overflow spills', () => {
+  const plant = (stage) => ({ topic: 't', stage });
+  const rooms = layoutRooms([...Array(8).fill(plant(1)), plant(4), ...Array(5).fill(plant(0))], 2);
+  eq([rooms.length, rooms[0].length, rooms[1].length], [2, 12, 2]);
+  eq(rooms[0].slice(0, 9).map((p) => p.slot), [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  eq(new Set(rooms[0].map((p) => p.slot)).size, 12);
+  eq(layoutRooms([plant(4)], 2)[0][0].slot, 6);
+});
+
+await test('plants past the last room stay out of the rooms', () => {
+  eq(layoutRooms(Array(30).fill({ stage: 0 }), 2).flat().length, 24);
+});
+
+await test('peaks only rise and merge by maximum', () => {
+  const cards = topicDeck(6);
+  const s = emptySave();
+  for (let i = 0; i < 5; i++) s.responses[`T${i}`] = { grade: 'got', day: '2026-11-01', at: 'x' };
+  updatePeaks(s, cards);
+  eq(s.peaks.T, 2);
+  for (let i = 0; i < 5; i++) s.responses[`T${i}`].grade = 'missed';
+  updatePeaks(s, cards);
+  eq(s.peaks.T, 2);
+  const other = emptySave();
+  other.peaks = { T: 1, U: 3 };
+  eq(mergeSaves(s, other, '2026-11-09').peaks, { T: 2, U: 3 });
+});
+
+await test('an extra card earns water without affecting whether the day is done', () => {
+  const day = '2026-11-09';
+  const s = emptySave();
+  ensureDay(s, deck(3), day, NOW(day));
+  addExtraCard(s, 'x1', day, NOW(day));
+  gradeCard(s, 'x1', day, { grade: 'got' }, NOW(day));
+  eq([s.profile.water, s.days[day].done, s.days[day].cards.length], [10, false, 3]);
+  for (const id of s.days[day].cards) gradeCard(s, id, day, { grade: 'missed' }, NOW(day));
+  eq([s.days[day].done, s.profile.water], [true, 19]);
+});
+
+await test('watering picks the most overdue card and skips ones answered today', () => {
+  const cards = topicDeck(3);
+  const r = { T0: { grade: 'got', day: '2026-11-01' }, T1: { grade: 'missed', day: '2026-11-01' }, T2: { grade: 'missed', day: '2026-11-09' } };
+  eq(pickForTopic(cards, 'T', r, '2026-11-09'), 'T1');
 });
 
 const today = () => '2026-11-09';

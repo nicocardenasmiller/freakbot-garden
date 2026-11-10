@@ -53,7 +53,7 @@ public class StreakWidget extends AppWidgetProvider {
     }
 
     /** Applies days missed since the app last ran, the same way the app's streak rule does. */
-    private static int liveStreak(SharedPreferences prefs, String today) {
+    static int liveStreak(SharedPreferences prefs, String today) {
         int streak = prefs.getInt("streak", 0);
         String lastDay = prefs.getString("lastDay", "");
         if (lastDay == null || lastDay.isEmpty()) {

@@ -1,8 +1,9 @@
 import { h } from './dom.js';
-import { ensureDay, localDay, recompute, timeBand } from './rules.js';
+import { buildPlants, ensureDay, layoutRooms, localDay, recompute, timeBand, updatePeaks } from './rules.js';
 import { createStore } from './store.js';
 import { renderCards } from './cards.js';
-import { renderGarden } from './garden.js';
+import { ROOMS, playWater, renderGarden } from './garden.js';
+import { renderHerbarium } from './herbarium.js';
 import { openSettings } from './settings.js';
 
 const SYNC_MS = 30000;
@@ -13,7 +14,7 @@ const today = () => localDay();
 const band = () => timeBand(new Date().getHours());
 
 const store = createStore({ today });
-const deck = { list: [], byId: new Map(), complete: false };
+const deck = { list: [], byId: new Map(), complete: false, appearance: [], chosen: {} };
 
 const later = (title, body) => ({
   el: h('div', { class: 'card-wrap' }, h('article', { class: 'card' }, h('h2', {}, title), h('p', {}, body))),
@@ -28,12 +29,20 @@ const ctx = {
   todayEntry: () => store.save.days[today()],
   go,
   refresh: render,
+  room: 0,
+  gardenNow,
+  allPlants: () => buildPlants(deck.list, deck.appearance, deck.chosen, store.save, today()),
+  playWater: (card, before, done) => playWater(ctx, card, before, done),
 };
+
+function gardenNow() {
+  return layoutRooms(buildPlants(deck.list, deck.appearance, deck.chosen, store.save, today()), ROOMS.length);
+}
 
 const VIEWS = {
   garden: () => renderGarden(ctx),
   cards: () => renderCards(ctx),
-  herbarium: () => later('Herbarium', 'The plant sheets arrive with the garden.'),
+  herbarium: () => renderHerbarium(ctx),
   journal: () => later('Journal', 'The first pages are still being written.'),
 };
 
@@ -104,7 +113,10 @@ function tick() {
 
 function prepareToday() {
   if (deck.complete) {
-    store.commit((save, now) => ensureDay(save, deck.list, today(), now));
+    store.commit((save, now) => {
+      ensureDay(save, deck.list, today(), now);
+      updatePeaks(save, deck.list);
+    });
   } else {
     store.commit((save) => recompute(save, today()));
   }
@@ -121,6 +133,7 @@ async function fetchJson(url) {
 
 async function loadDeck() {
   try {
+    deck.chosen = await fetchJson('data/plants.json').catch(() => ({}));
     const { files } = await fetchJson('data/cards/index.json');
     const ordered = [...files].sort((a, b) => fileRank(b).localeCompare(fileRank(a)));
     const sets = await Promise.all(ordered.map((f) => fetchJson(`data/cards/${f}`)));
@@ -132,6 +145,7 @@ async function loadDeck() {
     }
     deck.byId = byId;
     deck.list = [...byId.values()];
+    deck.appearance = [...new Set([...sets].reverse().flatMap((set) => set.cards.flatMap((card) => card.topics ?? [])))];
     deck.complete = true;
   } catch {
     deck.complete = false;

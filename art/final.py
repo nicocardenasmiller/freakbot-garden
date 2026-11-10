@@ -42,7 +42,8 @@ BANDS={
 }
 ADD=(0,0,0)
 GLYPH={'L':['100','100','100','100','111'],'I':['111','010','010','010','111'],'B':['110','101','110','101','110'],
-       'R':['110','101','110','101','101'],'O':['111','101','101','101','111'],'S':['011','100','010','001','110']}
+       'R':['110','101','110','101','101'],'O':['111','101','101','101','111'],'S':['011','100','010','001','110'],
+       'F':['111','100','110','100','100'],'C':['011','100','100','100','011'],'H':['101','101','111','101','101'],'A':['010','101','111','101','101']}
 RINGS=[0,.22,.4,.55,.68,.8,.9,1.0]
 
 def ring(t):
@@ -226,10 +227,10 @@ def console(s):
     for y,w in ((87,6),(89,4)): s.rect(17,y,w,1,MINT,lit=True)
     s.px(22,89,AMBER,lit=True); s.rect(18,92,4,2,S2)
 
-def sign(s):
+def sign(s,word='LIBROS'):
     for x in (10,20): s.rect(x,38,1,6,S0)
     s.rect(7,43,28,9,S0); s.rect(8,44,26,7,ROSE_DEEP,lit=True); s.rect(8,44,26,1,ROSE,lit=True)
-    for i,ch in enumerate('LIBROS'):
+    for i,ch in enumerate(word):
         for dy,row in enumerate(GLYPH[ch]):
             for dx,bit in enumerate(row):
                 if bit=='1': s.px(10+i*4+dx,45+dy,ROSE_LIGHT,lit=True)
@@ -259,6 +260,53 @@ def pot(s,cx,base,col=POT,small=False):
     w=7 if small else 11; h=3 if small else 5
     s.rect(cx-w//2,base-2,w,2,POT_RIM); s.rect(cx-w//2+1,base,w-2,h,col); s.rect(cx-w//2+1,base,1,h,POT_LIT)
     if not small: s.rect(cx-w//2+2,base+2,w-4,1,ICE,lit=True)
+SPINES=['#C4402E','#2B6CA3','#E0A92E','#1C2028','#EFEEE8','#6C7078','#8A3A2E','#3A5F85']
+
+def book_wall(s):
+    # the back of the Archive: shelves of books with one small porthole left of the old viewport
+    r=random.Random(17)
+    area=sorted(s.sky)
+    keep={(x,y) for x,y in area if math.hypot(x-48,y-42)<=8}
+    for x,y in area:
+        if (x,y) not in keep: s.px(x,y,'#2B2F37')
+    shelves=[34,46,58,70,80]
+    x0,x1=min(a for a,_ in area),max(a for a,_ in area)
+    for top,bot_ in zip([28]+shelves,shelves):
+        x=x0
+        while x<x1:
+            w=r.randint(1,3); h=r.randint(max(3,bot_-top-8),bot_-top-1); c=r.choice(SPINES)
+            for xx in range(x,x+w):
+                for y in range(bot_-h,bot_):
+                    if (xx,y) in area_set(area) and (xx,y) not in keep: s.px(xx,y,c if xx<x+w-1 or w==1 else sh(c,.75))
+            x+=w
+        for xx in range(x0,x1+1):
+            if (xx,bot_) in area_set(area) and (xx,bot_) not in keep: s.px(xx,bot_,'#6C5238')
+    for y in range(34,50):
+        for x in range(40,57):
+            d=math.hypot(x-48,y-42)
+            if 8<d<=9.5: s.px(x,y,S4 if y<42 else S0)
+
+_AREA={}
+def area_set(area):
+    k=id(area)
+    if k not in _AREA: _AREA[k]=set(area)
+    return _AREA[k]
+
+def catalog(s):
+    # card catalog left: the same footprint as the console, all small drawers
+    quad(s,[(0,94),(28,94),(31,87),(11,87)],S3)
+    line(s,(28,94),(31,87),S4)
+    quad(s,[(28,94),(31,87),(31,100),(28,110)],sh(S1,.74))
+    line(s,(31,87),(31,100),sh(S0,.7))
+    s.rect(0,94,28,16,'#6C5238'); s.rect(0,94,28,1,'#8A6C4C'); s.rect(0,109,28,1,'#3A2C20'); s.rect(27,94,1,16,'#3A2C20')
+    for y in range(96,108,4):
+        for x in range(1,26,5):
+            s.rect(x,y,4,3,'#7E6244'); s.rect(x,y,4,1,'#957555'); s.px(x+1,y+1,AMBER)
+    for i,(w,c,g) in enumerate([(9,'#3B3F7C','#F4C25E'),(8,'#7A2C55','#F4C25E'),(9,'#2F6A6A','#CFE4FF')]):
+        s.rect(2+i%2,92-2*i,w,2,c); s.rect(2+i%2,92-2*i,1,2,g)
+    # reading lamp
+    s.rect(18,92,6,2,'#8A6A2E'); s.rect(20,85,1,7,'#B08D4A'); s.rect(16,82,9,3,'#2B6CA3'); s.rect(16,82,9,1,'#5D93C4'); s.rect(17,85,7,1,'#FFE7A0',lit=True)
+
 def scarf(img):
     p=img.load()
     R,R2,D,G='#C9932E','#E0AE48','#8A5E1A','#7A2632'
@@ -329,29 +377,20 @@ def pad(s):
     for a in range(0,360,18):
         s.px(cx+31*math.cos(math.radians(a)),cy+11*math.sin(math.radians(a)),MINT,lit=True)
 
-def build(time, face='fbo', with_bot=True):
+def build(time, face='fbo', with_bot=True, room='bay'):
     s=S(time); r=random.Random(21); hull(s); viewport(s)
+    if room=='archive': book_wall(s)
     # remember the bare deck, for reflections
     mask=Image.new('1',(W,H),0); d=ImageDraw.Draw(mask)
     for i in (3,4,5): d.polygon([P(i,0,0),P(i,1,0),P(i,1,1),P(i,0,1)],fill=1)
     m=mask.load(); s.floor={(x,y):s.im.getpixel((x,y)) for y in range(H) for x in range(W) if m[x,y] and (x,y) not in s.sky and (x,y) not in s.lit}
-    grime(s); floor_shadows(s); console(s); sign(s); rack(s); pad(s); bot_shadow(s)
-    # rack plants (small)
-    for cx,base,(n,st) in [(77,80,('liuto',1)),(89,80,('quisco',1)),(77,90,('copihue',2)),(89,90,('maravilla',1)),(77,100,('tomatera',2)),(89,100,('nalca',1))]:
-        s.sprite(form(plant_img(n,st),-1), cx-13, base-28-2)
-    for cx,base in [(77,80),(89,80),(77,90),(89,90),(77,100),(89,100)]:
-        pot(s,cx,base-2,small=True)
+    grime(s); floor_shadows(s)
+    if room=='archive': catalog(s); sign(s,'FICHAS')
+    else: console(s); sign(s)
+    rack(s); pad(s); bot_shadow(s)
     glass(s)
-    hanging(s)
-    # floor bays
-    pot_shadow(s,14,126,7); pot_shadow(s,84,138,7)
-    s.sprite(form(plant_img('limonero',3),1),14-13,124-28-3); pot(s,14,121)
-    s.sprite(form(plant_img('araucaria',2),-1),84-13,136-28-3); pot(s,84,133)
-    s.sprite(form(plant_img('liuto',3),1),30-13,138-28-3); pot(s,30,135)
     overgrowth(s,r)
     if with_bot: bot(s,'fbn' if time=='night' else face,44,102)
-    # watering can
-    if time!='night' and with_bot: s.rect(68,120,5,4,'#B08D4A'); s.rect(73,120,3,1,'#B08D4A'); s.px(76,119,'#B08D4A'); s.rect(69,118,3,1,'#8A6A2E')
     return grade(s)
 
 def grade_sprite(im,t):
@@ -409,6 +448,7 @@ def grade(s):
 BAND_NAMES=('morning','day','golden','night')
 for t in BAND_NAMES:
     build(t,with_bot=False).save(f'f_{t}_bg.png')
+    build(t,with_bot=False,room='archive').save(f'f_{t}_archive_bg.png')
 for n in ('fbo','fbb','fbw','fbn'):
     im=bot_img(n); im.save(f'fr_{n}.png')
 can=Image.new('RGBA',(9,6),(0,0,0,0))
@@ -416,12 +456,50 @@ for x,y,c in [(0,2,'#B08D4A'),(1,2,'#B08D4A'),(2,2,'#B08D4A'),(3,2,'#B08D4A'),(4
     can.putpixel((x,y),hx(c)+(255,))
 can.save('fr_can.png')
 # app layers, graded per band
-for t,names in (('morning',('fbo','fbb')),('day',('fbo','fbb')),('golden',('fbo','fbb')),('night',('fbn',))):
+for t,names in (('morning',('fbo','fbb','fbw')),('day',('fbo','fbb','fbw')),('golden',('fbo','fbb','fbw')),('night',('fbn','fbo','fbw'))):
     for n in names: grade_sprite(bot_img(n),t).save(f'fr_{t}_{n}.png')
     if t!='night': grade_sprite(can,t).save(f'fr_{t}_can.png')
+# plant sheets: one row per species, 5 stages x normal/thirsty/wilted, then a row of pots
+CELL_W,CELL_H=26,34
+def pot_cell(kind):
+    im=Image.new('RGBA',(CELL_W,CELL_H),(0,0,0,0)); p=im.load()
+    def rect(x,y,w,h,c):
+        for yy in range(y,y+h):
+            for xx in range(x,x+w):
+                if 0<=xx<CELL_W and 0<=yy<CELL_H: p[xx,yy]=(hx(c) if isinstance(c,str) else c[:3])+(255,)
+    cx,base=13,28
+    if kind=='hanging':
+        rect(cx,0,1,base-3,POT_RIM)
+        for dx in range(-5,6): rect(cx+dx,base-3+abs(dx)//3,1,1,POT_RIM)
+    w,h=(7,3) if kind=='small' else (11,5)
+    rect(cx-w//2,base-2,w,2,POT_RIM); rect(cx-w//2+1,base,w-2,h,POT); rect(cx-w//2+1,base,1,h,POT_LIT)
+    if kind!='small': rect(cx-w//2+2,base+2,w-4,1,ICE)
+    return im
+
+def plant_cell(name,stage,state):
+    plant=PL.P(1); dict(PL.SPECIES)[name](plant,stage); im=plant.im
+    if state==1: im=PL.thirst(im)
+    elif state==2: im=PL.wilt(im)
+    return im
+
 for t in BAND_NAMES:
-    im=build(t); im.save(f'f_{t}.png'); im.resize((W*4,H*4),Image.NEAREST).save(f'f_{t}@4.png')
-ims=[Image.open(f'f_{t}@4.png') for t in BAND_NAMES]
-out=Image.new('RGB',(sum(i.width for i in ims)+30,ims[0].height),(255,255,255)); x=0
+    b=BANDS[t]; level=light_at(48,110,b); mul=[m*level for m in b['mul']]
+    sheet=Image.new('RGBA',(CELL_W*15,CELL_H*9),(0,0,0,0))
+    def add(im,col,row,shade=True):
+        c=form(im,1) if shade else im.copy(); px=c.load()
+        for y in range(CELL_H):
+            for x in range(CELL_W):
+                r,g,bl,a=px[x,y]
+                if a: px[x,y]=tuple(max(0,min(255,int(v*m))) for v,m in zip((r,g,bl),mul))+(a,)
+        sheet.paste(c,(col*CELL_W,row*CELL_H),c)
+    for row,(name,_) in enumerate(PL.SPECIES):
+        for state in range(3):
+            for stage in range(5):
+                add(plant_cell(name,stage,state),stage+state*5,row)
+    for col,kind in enumerate(('small','large','hanging')):
+        add(pot_cell(kind),col,8,shade=False)
+    sheet.save(f'f_{t}_plants.png')
+ims=[build(t,with_bot=False).resize((W*4,H*4),Image.NEAREST) for t in BAND_NAMES]+[build('day',with_bot=False,room='archive').resize((W*4,H*4),Image.NEAREST)]
+out=Image.new('RGB',(sum(i.width for i in ims)+40,ims[0].height),(255,255,255)); x=0
 for i in ims: out.paste(i,(x,0)); x+=i.width+10
 out.save('f_all.png'); print('ok')

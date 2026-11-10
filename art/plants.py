@@ -185,6 +185,18 @@ def thirst(img):
     clear=Image.new('RGBA',(PW,1),(0,0,0,0)); out2.paste(clear,(0,0)); out2.paste(top,(0,1),top)
     return out2
 
+def wilt(img):
+    out=img.copy(); px=out.load()
+    for y in range(PH):
+        for x in range(PW):
+            r,g,b,a=px[x,y]
+            if a and g>r and g>b:   # greens -> brown
+                px[x,y]=(min(255,int(r*1.45+62)),int(g*0.74),int(b*0.5),a)
+    # stronger droop: shift the plant above the soil down 3px
+    top=out.crop((0,0,PW,26)); out2=Image.new('RGBA',(PW,PH),(0,0,0,0)); out2.paste(out.crop((0,26,PW,PH)),(0,26))
+    out2.paste(top,(0,3),top)
+    return out2
+
 SCALE=4; CELL=PW*SCALE; GAP=14
 for name,fn in SPECIES:
     row=Image.new('RGBA',(6*CELL+5*GAP,PH*SCALE),(0,0,0,0))

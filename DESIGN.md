@@ -1,6 +1,6 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.7 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7)
+Version 1.8 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
@@ -137,8 +137,8 @@ Thirsty: leaves to dry olive, 1 px droop, pale cracked soil. Wilted: stronger dr
 ### 5.1 Topics and plants
 - A topic is a note in the vault's `Topics/` folder. A paper belongs to a topic through its `topics` frontmatter.
 - A topic gets a plant once it has at least one paper with a summary and at least one question.
-- Species are assigned in `data/plants.json` (topic → species, slot). Default: assign in order of first appearance, cycling through species. Felix can edit the file.
-- Capacity: 12 visible plants (6 étagère, 4 floor, 2 hanging). Seeds, sprouts and saplings sit on the étagère; bloom and fruit move to floor pots or hanging baskets. Each room holds 12 plants, filled in order of first appearance. When a room is full the next one opens (section 5.7).
+- Species are assigned in `data/plants.json` (topic → species). Default for topics not listed: order of first appearance, cycling through species. Felix can edit the file. Slots are not stored: they follow from each plant's stage.
+- Capacity: 12 visible plants per room (6 rack, 4 floor, 2 hanging). Seeds, sprouts and saplings sit on the rack; bloom and fruit move to floor pots or hanging baskets. A plant spills into the other group when its own is full. Each room holds 12 plants, filled in order of first appearance. When a room is full the next one opens (section 5.7).
 
 ### 5.2 Stage from mastery
 For each topic, over its questions' latest grades: `answered` = number answered at least once; `mastery` = (got + 0.5 × partial) / answered.
@@ -155,7 +155,7 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 
 ### 5.3 Water, thirst
 - Water per answer: knew it 10, partly 6, not yet 3. Water is a running total shown in the stat strip.
-- Thirsty: topic has questions due and none answered in 7 days. Wilted: 21 days. Answering any card of that topic clears it.
+- Thirsty: topic has questions due and none answered in 7 days. Wilted: 21 days. Answering any card of that topic clears it. A card is due unless it was graded knew it in the last 3 days. A seed with nothing answered is never thirsty.
 
 ### 5.4 Daily cards
 - 3 cards per day, fixed for the day once picked (seeded by the date).
@@ -173,7 +173,7 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 - One lore chapter per completed day, in order (13 chapters from the Mac app’s `lines.js`, Coronel Plumas appears in text only). After the last, weekly results pages only, until new chapters are written.
 
 ### 5.7 Rooms and travel
-- Rooms open in this order, every 12 plants: Hydroponics bay, Archive (shelves of books and card catalogs), Observatory (domed roof, telescope), Greenhouse deck (open to the sky). Swipe or tap between them on the Garden tab.
+- Rooms open in this order, every 12 plants: Hydroponics bay, Archive (shelves of books and card catalogs), Observatory (domed roof, telescope), Greenhouse deck (open to the sky). Swipe or tap between them on the Garden tab. Bay and Archive exist so far; the Observatory and Greenhouse deck get drawn when someone reaches 25 plants, and until then those plants live in the Herbarium only.
 - Destinations come from `data/locations.json`. The current one is `floor(water / 200) mod count`, so it needs no saved state and only answering cards can move the building. About one new view every 10 days.
 - First destinations: orbit, old port city (Valparaíso-inspired), ruined college town, ringed planet. Time-of-day lighting applies at every stop.
 
@@ -227,11 +227,12 @@ Felix accepted that questions are public (they summarize published papers).
 {
   "v": 1,
   "responses": { "<card id>": { "grade": "got|partial|missed", "at": "ISO", "day": "YYYY-MM-DD", "choice": 0, "points": [0, 2], "text": "...", "reviewed": "note" } },
-  "days": { "YYYY-MM-DD": { "cards": ["<card id>"], "done": true, "frozen": false, "water": 26, "at": "ISO" } },
+  "days": { "YYYY-MM-DD": { "cards": ["<card id>"], "extra": ["<card id>"], "done": true, "frozen": false, "water": 26, "at": "ISO" } },
+  "peaks": { "<topic>": 2 },
   "profile": { "streak": 0, "best": 0, "freezes": 0, "water": 0, "daysDone": 0, "lastDay": null, "unlocked": [] }
 }
 ```
-`points` lists the key points tapped. `reviewed` is set by the Friday review when it lowers a grade, with `at` bumped so the change wins the merge. Keep only the latest response per card in `responses`; append history to `history/<YYYY-MM>.jsonl` if needed later.
+`extra` holds cards asked through "Water this plant": they earn water but never affect whether the day is done. `peaks` is the highest stage each topic has reached and merges by maximum. `points` lists the key points tapped. `reviewed` is set by the Friday review when it lowers a grade, with `at` bumped so the change wins the merge. Keep only the latest response per card in `responses`; append history to `history/<YYYY-MM>.jsonl` if needed later.
 
 ### 6.5 Sync
 - Writes go to localStorage first (works offline), then to GitHub through the Contents API (`PUT /repos/{owner}/freakbot-garden-save/contents/save.json` with the file `sha`).
@@ -240,7 +241,7 @@ Felix accepted that questions are public (they summarize published papers).
 
 ### 6.7 Android app
 - `app/` is a Capacitor shell (id `garden.freakbot.app`) that loads the live site, so web changes reach the phone without a reinstall. Only native changes need a new APK.
-- It adds a home-screen streak widget. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
+- It adds a daily 19:35 reminder that only fires when today's cards are not done (a day finished on the Mac counts once the phone app has opened), and a home-screen streak widget. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
 - Installed directly on the phone, not through the Play Store. Build with `cd app/android && ./gradlew assembleDebug`.
 - The Mac keeps using the website.
 
@@ -253,9 +254,9 @@ New cards come from two places:
 1. **Summary time (primary, added 9 Nov 2026).** When Claude writes a paper's Claude Summary (workflow in `claude/Reading_Batch_Workflow.md`, section 8), it also writes 2–3 cards for that paper from the PDF: one recall, one evidence, and optionally one concept or synthesis card. They go live the same day as `data/cards/<date>-batch.json`. New papers therefore enter the garden immediately: a new topic plants its seed the day the paper is summarized, not on Friday.
 2. **Friday task (secondary).** Fills gaps and adds what single-paper cards cannot: synthesis cards across papers, concept cards from `Concepts/`, new angles on papers you keep missing, and cards for any summarized paper that has none yet (for example notes summarized outside the workflow). It skips papers that already have batch cards unless you have been missing them.
 
-Two Claude scheduled tasks exist:
+Scheduled jobs:
 - **Weekly reading quiz** (Fridays 08:40 ET, a local task on the Mac; moved up from Phase 3): reads `save.json`, writes `data/cards/<date>.json` in the card format above and updates `index.json`, commits and pushes to `freakbot-garden`. It also reviews answers typed since the last run against each card's `points`; where a grade looks too generous it lowers the grade in `save.json` and sets `reviewed`, so the card comes back sooner, and it reports what it changed.
-- **Freakbot streak reminder** (daily 19:35 ET, cloud): today reads the old page's database. Change it to read `save.json` from the private repo.
+- **Streak reminder** (daily 19:35, on the phone): built into the Android app, section 6.7. The old cloud task is paused.
 
 Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"): export its `quizzes`, `responses`, `days`, `profile` collections and convert to the new files once, before switching the tasks.
 
@@ -278,7 +279,7 @@ Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"):
 
 **Phase 3: polish**
 - Journal and lore, milestones, travel between destinations (section 5.7), more Freakbot frames, nalca redraw, sound off by default.
-- Update the streak reminder task; migrate old data; retire the claude.ai quiz page.
+- Migrate old data; retire the claude.ai quiz page.
 
 ---
 

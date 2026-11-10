@@ -1,12 +1,12 @@
 import { h } from './dom.js';
-import { WATER, gradeCard, gradeFromPoints } from './rules.js';
+import { WATER, gradeCard, gradeFromPoints, updatePeaks } from './rules.js';
 
 const GRADE_LABEL = { got: 'Knew it', partial: 'Partly', missed: 'Not yet' };
 
-let session = { day: null, viewing: null, side: 'front', draft: '', hits: new Set() };
+let session = { day: null, viewing: null, side: 'front', draft: '', hits: new Set(), extra: null, before: null };
 
 const reset = (day) => {
-  session = { day, viewing: null, side: 'front', draft: '', hits: new Set() };
+  session = { day, viewing: null, side: 'front', draft: '', hits: new Set(), extra: null, before: null };
 };
 
 const kicker = (ctx, ids, id, card) =>
@@ -31,8 +31,18 @@ function renderDone(ctx, entry) {
   };
 }
 
+// "Water this plant" asks one extra card for that plant's topic.
+export function startExtra(cardId, day) {
+  reset(day);
+  session.extra = cardId;
+}
+
 function answer(ctx, card, payload) {
-  ctx.store.commit((save, now) => gradeCard(save, card.id, ctx.today(), payload, now));
+  session.before = ctx.gardenNow();
+  ctx.store.commit((save, now) => {
+    gradeCard(save, card.id, ctx.today(), payload, now);
+    updatePeaks(save, ctx.deck.list);
+  });
 }
 
 function renderShortFront(ctx, ids, card) {
@@ -89,8 +99,9 @@ function renderBack(ctx, ids, card) {
   const graded = response?.day === ctx.today();
   const isChoice = card.format === 'mc';
   const next = () => {
+    const { before, extra } = session;
     reset(ctx.today());
-    ctx.refresh();
+    ctx.playWater(card, before, () => (extra ? ctx.go('herbarium') : ctx.refresh()));
   };
 
   const verdict =
@@ -201,16 +212,17 @@ export function renderCards(ctx) {
   }
 
   const { responses } = ctx.store.save;
-  const id = session.viewing ?? entry.cards.find((c) => responses[c]?.day !== today);
+  const ids = session.extra ? [session.extra] : entry.cards;
+  const id = session.viewing ?? session.extra ?? entry.cards.find((c) => responses[c]?.day !== today);
   const card = id && ctx.deck.byId.get(id);
   if (!card) return renderDone(ctx, entry);
 
   const view =
     session.side === 'back'
-      ? renderBack(ctx, entry.cards, card)
+      ? renderBack(ctx, ids, card)
       : card.format === 'mc'
-        ? renderChoiceFront(ctx, entry.cards, card)
-        : renderShortFront(ctx, entry.cards, card);
+        ? renderChoiceFront(ctx, ids, card)
+        : renderShortFront(ctx, ids, card);
 
   return {
     el: h('div', { class: 'card-wrap' }, h('article', { class: `card ${session.side}` }, ...view.body.filter(Boolean))),
