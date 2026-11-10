@@ -256,7 +256,7 @@ New cards come from two places:
 
 Scheduled jobs:
 - **Weekly reading quiz** (Fridays 08:40 ET, a local task on the Mac; moved up from Phase 3): reads `save.json`, writes `data/cards/<date>.json` in the card format above and updates `index.json`, commits and pushes to `freakbot-garden`. It also reviews answers typed since the last run against each card's `points`; where a grade looks too generous it lowers the grade in `save.json` and sets `reviewed`, so the card comes back sooner, and it reports what it changed.
-- **Streak reminder** (daily 19:35, on the phone): built into the Android app, section 6.7. The old cloud task is paused.
+- **Streak reminder** (daily 19:35, on the phone): built into the Android app, section 6.7. The old cloud task no longer exists.
 
 Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"): export its `quizzes`, `responses`, `days`, `profile` collections and convert to the new files once, before switching the tasks.
 
