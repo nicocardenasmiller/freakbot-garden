@@ -266,3 +266,19 @@ body { background: var(--ink) var(--plate) 0 0 / 384px 384px; }
 .pokeable { cursor: pointer; }
 .moving .blink { display: none; }
 .spark { position: absolute; width: 8px; height: 8px; background: #E0A92E; box-shadow: inset 2px 2px 0 #F8F7F2; }
+
+.detail { position: absolute; width: 264px; height: 120px; image-rendering: pixelated; background-repeat: no-repeat; background-size: 1320px 120px; pointer-events: none; }
+.room.view { z-index: 1; }
+.reward { margin-top: 14px; font-weight: 600; color: var(--blue); }
+.reward-link { display: block; width: 100%; margin-top: 12px; padding: 10px; background: var(--bar); color: var(--bar-text); font: 600 14px/1 var(--label); letter-spacing: 0.1em; text-transform: uppercase; clip-path: var(--notch); }
+.sound-toggle { display: block; padding: 0; margin-top: 10px; height: 26px; }
+
+.journal { height: 100%; padding: 10px 14px; overflow-y: auto; display: grid; gap: 10px; align-content: start; }
+.page { padding: 12px 14px 14px; background: var(--panel) var(--panel-tex) 0 0 / 256px 256px; color: var(--text); border: 4px solid var(--rule); clip-path: var(--notch); box-shadow: inset 4px 4px 0 var(--hi), inset -4px -4px 0 var(--lo); }
+.page-number { margin-bottom: 6px; }
+.page-text { font: 400 21px/1.15 'VT323', monospace; }
+.weeks { padding: 4px 2px; }
+.weeks h3 { margin-bottom: 6px; color: var(--text); }
+.week-row { display: grid; gap: 2px; padding: 8px 0; border-top: 4px solid var(--lo); }
+.week-row .smallcaps { color: var(--text); }
+.week-stats { font-size: 15px; font-weight: 400; color: var(--text-muted); }

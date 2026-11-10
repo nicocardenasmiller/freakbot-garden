@@ -1,5 +1,6 @@
 import { h } from './dom.js';
-import { WATER, gradeCard, gradeFromPoints, updatePeaks } from './rules.js';
+import { WATER, applyMilestones, gradeCard, gradeFromPoints, updatePeaks } from './rules.js';
+import { play } from './sound.js';
 
 const GRADE_LABEL = { got: 'Knew it', partial: 'Partly', missed: 'Not yet' };
 
@@ -15,6 +16,18 @@ const kicker = (ctx, ids, id, card) =>
 const message = (title, body) =>
   h('div', { class: 'card-wrap' }, h('article', { class: 'card' }, h('h2', {}, title), h('p', {}, body)));
 
+function rewards(ctx, entry, profile) {
+  if (!entry.done) return [];
+  const out = [];
+  const milestone = ctx.deck.milestones.find((m) => m.days === profile.streak);
+  if (milestone) out.push(h('p', { class: 'reward' }, `Unlocked ${milestone.name} on the ship.`));
+  const chapter = Math.min(profile.daysDone, ctx.deck.lore.length);
+  if (chapter > 0) {
+    out.push(h('button', { class: 'reward-link', onclick: () => { play('page'); ctx.go('journal'); } }, `Read journal chapter ${chapter}`));
+  }
+  return out;
+}
+
 function renderDone(ctx, entry) {
   const { profile } = ctx.store.save;
   const empty = entry.cards.length === 0;
@@ -24,6 +37,7 @@ function renderDone(ctx, entry) {
     h('h2', {}, empty ? 'Nothing due today' : 'Watered for today'),
     h('p', {}, empty ? 'The day still counts.' : `${entry.water} water from ${entry.cards.length} cards.`),
     h('p', { class: 'smallcaps tally' }, `Streak ${profile.streak} · Freezes ${profile.freezes}`),
+    ...rewards(ctx, entry, profile),
   );
   return {
     el: h('div', { class: 'card-wrap' }, body),
@@ -42,6 +56,7 @@ function answer(ctx, card, payload) {
   ctx.store.commit((save, now) => {
     gradeCard(save, card.id, ctx.today(), payload, now);
     updatePeaks(save, ctx.deck.list);
+    applyMilestones(save, ctx.deck.milestones);
   });
 }
 

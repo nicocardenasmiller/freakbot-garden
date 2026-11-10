@@ -393,6 +393,26 @@ def archive_furniture(s):
     for x in range(30,67,4): s.px(x,116,'#E0A92E')
     for x in range(25,72,4): s.px(x,132,'#E0A92E')
 
+# More of Freakbot, from the eye shapes in his Mac app's code.
+EYE,EYE_LIT,SCREEN='#9FE1CB','#E1F5EE','#085041'
+def eye_pixels(kind,dx=0):
+    E,W_=EYE,EYE_LIT
+    if kind=='happy': return [(5,8,E),(6,7,E),(7,8,E),(9,8,E),(10,7,E),(11,8,E),(8,9,E)]
+    if kind=='o': return [(6,7,W_),(7,7,E),(6,8,E),(7,8,E),(9,7,W_),(10,7,E),(9,8,E),(10,8,E),(8,9,W_)]
+    if kind=='yawn': return [(6,7,E),(7,7,E),(9,7,E),(10,7,E),(7,8,E),(8,8,E),(9,8,E),(7,9,E),(9,9,E)]
+    return [(6+dx,7,W_),(7+dx,7,E),(6+dx,8,E),(7+dx,8,E),(9+dx,7,W_),(10+dx,7,E),(9+dx,8,E),(10+dx,8,E),(8,9,E)]
+def with_eyes(base,kind,dx=0):
+    kept=[p for p in base if not (5<=p[0]<=11 and 7<=p[1]<=9)]
+    screen=[(x,y,SCREEN) for y in range(7,10) for x in range(5,12)]
+    return kept+screen+eye_pixels(kind,dx)
+def spun(frame):
+    # the wheel a quarter turn on: its two greys trade places
+    swap={'#888780':'#444441','#444441':'#888780'}
+    return [(x,y,swap.get(c.upper(),c) if y>=18 else c) for x,y,c in frame]
+SP['fbL']=with_eyes(SP['fbo'],'open',-1); SP['fbR']=with_eyes(SP['fbo'],'open',1)
+SP['fbrL']=spun(SP['fbL']); SP['fbrR']=spun(SP['fbR'])
+SP['fby']=with_eyes(SP['fbo'],'yawn'); SP['fbx']=with_eyes(SP['fbo'],'o'); SP['fbh']=with_eyes(SP['fbo'],'happy')
+
 def scarf(img):
     p=img.load()
     R,R2,D,G='#C9932E','#E0AE48','#8A5E1A','#7A2632'
@@ -477,6 +497,8 @@ def build(time, face='fbo', with_bot=True, room='bay'):
     bot_shadow(s)
     overgrowth(s,r)
     if with_bot: bot(s,'fbn' if time=='night' else face,44,102)
+    global LAST
+    LAST=s
     return grade(s)
 
 def grade_sprite(im,t):
@@ -547,7 +569,8 @@ for x,y,c in [(0,2,'#B08D4A'),(1,2,'#B08D4A'),(2,2,'#B08D4A'),(3,2,'#B08D4A'),(4
     can.putpixel((x,y),hx(c)+(255,))
 can.save('fr_can.png')
 # app layers, graded per band
-for t,names in (('morning',('fbo','fbb','fbw')),('day',('fbo','fbb','fbw')),('golden',('fbo','fbb','fbw')),('night',('fbn','fbo','fbw'))):
+EXTRA=('fbL','fbR','fbrL','fbrR','fby','fbx','fbh')
+for t,names in (('morning',('fbo','fbb','fbw')+EXTRA),('day',('fbo','fbb','fbw')+EXTRA),('golden',('fbo','fbb','fbw')+EXTRA),('night',('fbn','fbo','fbw')+EXTRA)):
     for n in names: grade_sprite(bot_img(n),t).save(f'fr_{t}_{n}.png')
     if t!='night': grade_sprite(can,t).save(f'fr_{t}_can.png')
 # plant sheets: one row per species, 5 stages x normal/thirsty/wilted, then a row of pots
@@ -590,6 +613,110 @@ for t in BAND_NAMES:
     for col,kind in enumerate(('small','large','hanging')):
         add(pot_cell(kind),col,8,shade=False)
     sheet.save(f'f_{t}_plants.png')
+# milestone details: one row of 66 x 30 cells per band
+DETAIL_W,DETAIL_H=66,30
+def detail_cell(col):
+    im=Image.new('RGBA',(DETAIL_W,DETAIL_H),(0,0,0,0)); p=im.load()
+    def rect(x,y,w,h,c):
+        for yy in range(y,y+h):
+            for xx in range(x,x+w):
+                if 0<=xx<DETAIL_W and 0<=yy<DETAIL_H: p[xx,yy]=hx(c)+(255,)
+    if col==0:  # framed print
+        rect(0,0,12,15,BRASS); rect(1,1,10,13,'#E9DCC0'); rect(2,6,8,4,'#8DB8DE'); rect(4,4,3,3,'#E0A92E'); rect(2,10,8,3,'#2F6A6A'); rect(0,15,12,1,WOOD0)
+    elif col==1:  # second candle
+        rect(0,8,5,1,BRASS); rect(1,2,3,6,'#E9DCC0'); rect(2,0,1,2,'#FFE7A0')
+    elif col==2:  # gramophone
+        rect(1,9,10,4,WOOD2); rect(1,9,10,1,WOOD3); rect(5,6,2,3,BRASS)
+        for k in range(6):
+            rect(6+k,5-k,1,2+k,BRASS if k%2 else '#D0AE66')
+    elif col==3:  # globe
+        for y in range(9):
+            for x in range(9):
+                if math.hypot(x-4,y-4)<=4.4: p[x,y]=hx('#2B6CA3' if (x*3+y*5)%7>2 else '#3F7F45')+(255,)
+        rect(4,9,1,1,BRASS); rect(2,10,5,1,BRASS); rect(6,0,1,1,BRASS)
+    else:  # rug fringe
+        for x in range(11,56,2): rect(x,2,1,2,'#E8D8B0')
+        for x in range(2,65,2): rect(x,28,1,2,'#E8D8B0')
+    return im
+for t in BAND_NAMES:
+    b=BANDS[t]; mul=[m*light_at(48,100,b) for m in b['mul']]
+    sheet=Image.new('RGBA',(DETAIL_W*5,DETAIL_H),(0,0,0,0))
+    for col in range(5):
+        c=detail_cell(col); px=c.load()
+        for y in range(DETAIL_H):
+            for x in range(DETAIL_W):
+                r,g,bl,a=px[x,y]
+                if a: px[x,y]=tuple(max(0,min(255,int(v*m))) for v,m in zip((r,g,bl),mul))+(a,)
+        sheet.paste(c,(col*DETAIL_W,0),c)
+    sheet.save(f'f_{t}_details.png')
+
+# destination views, cut to whatever glass is left in the finished bay
+LOC_SKY={'golden':['#5E3A4A','#A85C42','#DE8E48','#F2B860']}
+LOC_TINT={'morning':(1.0,.95,.85),'day':(1.0,1.0,1.0),'golden':(1.05,.75,.55),'night':(.28,.3,.48)}
+def paint_port(put,sky,fill):
+    r=random.Random(12)
+    for x,y in sky: put(x,y,LOC_SKY.get(CUR,['#7FB4D6','#9CC8DE','#BCDCE6','#D8ECEA'])[min(3,int((y-26)/54*4))],raw=CUR in LOC_SKY)
+    for y in range(72,81):
+        for x in range(20,80): put(x,y,'#3F7F9E' if (x+y*3)%7 else '#6FA8C0')
+    for x in range(20,74):
+        top=int(46+(x-20)*.42+2*math.sin(x/4))
+        for y in range(top,74): put(x,y,'#3E6B4C' if (x*y)%5 else '#2E5A40')
+    colors=['#E8785E','#F2C14E','#6FC7B0','#5E9BD6','#E8A0B8','#F4EFE0']
+    for row in range(5):
+        y=50+row*5; x=22+row*2
+        while x<62+row*2:
+            w=r.randint(3,5)
+            if y<46+(x-20)*.42+8 or r.random()<.82:
+                fill(x,y,w,3,r.choice(colors)); fill(x,y-1,w,1,'#7A4A3A'); put(x+1,y+1,'#2A3046')
+            x+=w+r.randint(0,2)
+    for k in range(18): put(60+k//3,55+k,'#3A3F4E')
+    for y in range(60,76): put(70,y,'#3A3F4E')
+    for x in range(64,77): put(x,60,'#3A3F4E')
+def paint_college(put,sky,fill):
+    for x,y in sky: put(x,y,LOC_SKY.get(CUR,['#7E8C9A','#95A2AC','#AEB8BC','#C8CFCB'])[min(3,int((y-26)/54*4))],raw=CUR in LOC_SKY)
+    stone,shade='#59606E','#464C5A'
+    def spire(cx,top,base,half):
+        for y in range(top,base):
+            w=min(half,(y-top)//3); fill(cx-w,y,w*2+1,1,stone); put(cx+w,y,shade)
+    spire(36,38,72,4); spire(58,34,72,5); spire(47,46,72,3)
+    fill(26,58,46,18,stone)
+    for x in range(30,70,7): fill(x,62,3,7,'#F4C25E'); put(x+1,61,'#F4C25E')
+    for x in range(24,76):
+        if x%3: put(x,57,shade)
+    for x in range(20,80):
+        h=5+int(3*math.sin(x*.9)+2*math.sin(x*.37))
+        for y in range(80-h,81): put(x,y,'#3A6B50' if (x+y)%4 else '#2C5640')
+    r=random.Random(3)
+    for _ in range(36): put(r.randint(26,70),r.randint(44,72),'#3A6B50')
+def paint_ringed(put,sky,fill):
+    for x,y in sky: put(x,y,['#05060F','#0A0E22','#141238'][min(2,int((y-26)/54*3))])
+    r=random.Random(6)
+    for _ in range(36): put(r.randint(22,76),r.randint(26,80),r.choice(['#FFFFFF','#CFE4FF','#FFE9B8']))
+    cx,cy,rad=50,56,17
+    for x,y in sky:
+        dx,dy=x-cx,y-cy
+        if dx*dx+dy*dy<rad*rad: put(x,y,'#D8A878' if (y+dx//8)%7>2 else '#B8845C')
+    for x,y in sky:
+        dx,dy=x-cx,y-cy
+        a,b_=dx*.92+dy*.38,-dx*.38+dy*.92
+        d=math.hypot(a/30,b_/7)
+        if .72<d<1 and (b_>0 or dx*dx+dy*dy>=rad*rad): put(x,y,'#E8D8B8' if d<.86 else '#A89878')
+    for x in range(29,33):
+        for y in range(68,72): put(x,y,'#9AA3B8')
+for name,paint in (('port',paint_port),('college',paint_college),('ringed',paint_ringed)):
+    for t in BAND_NAMES:
+        build(t,with_bot=False); sky=set(LAST.sky)
+        layer=Image.new('RGBA',(W,H),(0,0,0,0)); p=layer.load(); tint=LOC_TINT[t]
+        CUR=t
+        def put(x,y,c,raw=False):
+            x,y=int(x),int(y)
+            if (x,y) in sky: p[x,y]=hx(c)+(255,) if raw else tuple(max(0,min(255,int(v*m))) for v,m in zip(hx(c),tint))+(255,)
+        def fill(x0,y0,w,h,c):
+            for y in range(y0,y0+h):
+                for x in range(x0,x0+w): put(x,y,c)
+        paint(put,sorted(sky),fill)
+        layer.save(f'loc_{name}_{t}.png')
+
 # interface materials, tiled at 4x so the UI shares the scene's pixel grid
 UI_MUL={'morning':(1.0,.98,.92),'day':(1.0,1.0,1.0),'golden':(1.0,.92,.82),'night':(.3,.33,.46)}
 def ui_tile(band,size,base,plate):

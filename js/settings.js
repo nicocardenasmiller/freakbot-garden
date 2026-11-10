@@ -1,4 +1,5 @@
 import { h } from './dom.js';
+import { setSound, soundOn } from './sound.js';
 
 export const STATUS_TEXT = {
   missing: 'Not syncing: no token on this device.',
@@ -8,6 +9,8 @@ export const STATUS_TEXT = {
   pending: 'Checking…',
   ok: 'Synced.',
 };
+
+const soundLabel = () => `Sound: ${soundOn() ? 'on' : 'off'}`;
 
 export function openSettings(store) {
   const dialog = h('dialog', { class: 'settings' });
@@ -39,6 +42,17 @@ export function openSettings(store) {
   dialog.append(
     h('h2', {}, 'Settings'),
     h('label', { class: 'smallcaps' }, 'Sync token', input),
+    h(
+      'button',
+      {
+        class: 'quiet sound-toggle',
+        onclick: (e) => {
+          setSound(!soundOn());
+          e.currentTarget.textContent = soundLabel();
+        },
+      },
+      soundLabel(),
+    ),
     h('p', { class: 'hint' }, 'A fine-grained GitHub token with Contents read and write on freakbot-garden-save only. It stays on this device.'),
     status,
     h(

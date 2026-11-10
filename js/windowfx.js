@@ -18,7 +18,7 @@ const ARCHIVE_STARS = [[43, 17], [53, 15], [47, 13], [55, 22], [41, 25]];
 const CITY = [[40, 72], [46, 66], [52, 62], [58, 70], [63, 58], [67, 62], [44, 76], [55, 76], [61, 66], [50, 70]];
 const CLOUDS = { morning: '#E6F2F8', day: '#E6F2F8', golden: '#F0C080' };
 
-export function startWindow(scene, roomId, band) {
+export function startWindow(scene, roomId, band, place = 'orbit') {
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
@@ -38,8 +38,32 @@ export function startWindow(scene, roomId, band) {
     dot(x, y, phase < 5 ? '#FFFFFF' : '#9FB4D8');
   });
 
+  // Over a city: clouds in the sky and a few birds instead of stars.
+  function drawCity(t) {
+    const cloud = band === 'night' ? '#39435E' : band === 'golden' ? '#F0C080' : '#F2F6F6';
+    [[32, 16, 6, 3], [40, 22, 9, 40]].forEach(([y, width, speed, start]) => {
+      const x0 = 14 + ((start + Math.floor(t / speed)) % 70);
+      for (let x = x0; x < x0 + width; x += 1) {
+        dot(x, y, cloud);
+        if (x > x0 + 2 && x < x0 + width - 3) dot(x, y - 1, cloud);
+      }
+    });
+    if (band === 'night') return;
+    const bx = 26 + (Math.floor(t / 3) % 44);
+    [[0, 0], [2, 0], [1, 1]].forEach(([dx, dy], i) => dot(bx + dx, 35 + (t % 2 && i < 2 ? -1 : 0) + dy, '#2A3046'));
+  }
+
   function drawBay(t) {
+    if (place === 'port' || place === 'college') {
+      drawCity(t);
+      return;
+    }
     twinkle(BAY_STARS, t);
+    if (place === 'ringed') {
+      const shipX = 26 + (Math.floor(t / 7) % 46);
+      [[0, 0], [1, 0], [2, 0], [3, 0]].forEach(([dx, dy]) => dot(shipX + dx, 34 + dy, '#3A4A78'));
+      return;
+    }
     const clouds = CLOUDS[band];
     if (clouds) {
       [[62, 3, 20, 5, 0], [68, 2, 16, 8, 19], [74, 3, 24, 6, 37]].forEach(([y, h, width, speed, start]) => {

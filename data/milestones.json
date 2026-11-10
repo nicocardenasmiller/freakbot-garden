@@ -1,0 +1,47 @@
+[
+  {
+    "id": "print",
+    "days": 1,
+    "name": "a framed print",
+    "room": "bay",
+    "x": 5,
+    "y": 18,
+    "col": 0
+  },
+  {
+    "id": "candle",
+    "days": 7,
+    "name": "a second candle",
+    "room": "bay",
+    "x": 12,
+    "y": 84,
+    "col": 1
+  },
+  {
+    "id": "gramophone",
+    "days": 14,
+    "name": "a gramophone",
+    "room": "archive",
+    "x": 65,
+    "y": 68,
+    "col": 2
+  },
+  {
+    "id": "globe",
+    "days": 30,
+    "name": "a globe",
+    "room": "archive",
+    "x": 6,
+    "y": 51,
+    "col": 3
+  },
+  {
+    "id": "fringe",
+    "days": 60,
+    "name": "a fringe for the rug",
+    "room": "archive",
+    "x": 15,
+    "y": 109,
+    "col": 4
+  }
+]

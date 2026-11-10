@@ -114,9 +114,19 @@ def quisco(p,st):
 def nalca(p,st):
     if st==0: p.px(13,27,'#8E2B2B'); p.px(13,26,'#B5432F'); return
     def big_leaf(cx,cy,r):
-        p.shaded_blob(cx,cy,r,dark='#3E7A2A',mid='#5E9E36',lite='#86C24E',out='#2A5A1C',sq=.7)
-        for i in range(-r,r+1,2): p.px(cx+i,cy,'#2A5A1C')
-        p.px(cx,cy-1,'#2A5A1C'); p.px(cx,cy+1,'#2A5A1C')
+        # a giant rhubarb-like leaf: wide, flat, ragged at the rim, ribs fanning from the stalk
+        rx,ry=r+2,max(2,r//2+1)
+        for y in range(-ry,ry+1):
+            half=int(rx*math.sqrt(max(0,1-(y/(ry+.4))**2)))
+            for x in range(-half,half+1):
+                edge=abs(x)==half
+                if edge and (x+y)%2: continue
+                c='#2A5A1C' if y==ry or (edge and y>0) else '#86C24E' if y<-ry//2 else '#5E9E36' if y<1 else '#3E7A2A'
+                p.px(cx+x,cy+y,c)
+        for d in (-1,1):
+            for i in range(1,rx,1):
+                p.px(cx+d*i,cy+ry-1-(i*(ry+1))//rx,'#2A5A1C')
+        p.px(cx,cy+ry-1,'#B5432F'); p.px(cx,cy+ry-2,'#2A5A1C')
     if st==1: p.stem(13,27,24,'#B5432F'); big_leaf(13,22,2); return
     stalks={2:[(13,18,4)],3:[(9,16,5),(17,14,6)],4:[(8,14,6),(18,12,7),(13,18,4)]}[st]
     for x,y,r in stalks:

@@ -1,9 +1,10 @@
 import { h } from './dom.js';
-import { addDays, buildPlants, ensureDay, layoutRooms, localDay, recompute, timeBand, updatePeaks } from './rules.js';
+import { addDays, applyMilestones, buildPlants, ensureDay, layoutRooms, locationIndex, localDay, recompute, timeBand, updatePeaks } from './rules.js';
 import { createStore } from './store.js';
 import { renderCards } from './cards.js';
 import { ROOMS, playWater, renderGarden } from './garden.js';
 import { renderHerbarium } from './herbarium.js';
+import { renderJournal } from './journal.js';
 import { openSettings } from './settings.js';
 
 const SYNC_MS = 30000;
@@ -14,7 +15,7 @@ const today = () => localDay();
 const band = () => timeBand(new Date().getHours());
 
 const store = createStore({ today });
-const deck = { list: [], byId: new Map(), complete: false, appearance: [], chosen: {} };
+const deck = { list: [], byId: new Map(), complete: false, appearance: [], chosen: {}, lore: [], milestones: [], locations: [] };
 
 const later = (title, body) => ({
   el: h('div', { class: 'card-wrap' }, h('article', { class: 'card' }, h('h2', {}, title), h('p', {}, body))),
@@ -31,6 +32,8 @@ const ctx = {
   refresh: render,
   room: 0,
   gardenNow,
+  location: () => deck.locations[locationIndex(store.save.profile.water, deck.locations.length)] ?? { id: 'orbit', art: false },
+  details: (roomId) => deck.milestones.filter((m) => m.room === roomId && (store.save.profile.unlocked ?? []).includes(m.id)),
   allPlants: () => buildPlants(deck.list, deck.appearance, deck.chosen, store.save, today()),
   playWater: (card, before, done) => playWater(ctx, card, before, done),
 };
@@ -43,7 +46,7 @@ const VIEWS = {
   garden: () => renderGarden(ctx),
   cards: () => renderCards(ctx),
   herbarium: () => renderHerbarium(ctx),
-  journal: () => later('Journal', 'The first pages are still being written.'),
+  journal: () => renderJournal(ctx),
 };
 
 // In the Android app, keep the home-screen widget in step with the streak.
@@ -122,6 +125,7 @@ function prepareToday() {
     store.commit((save, now) => {
       ensureDay(save, deck.list, today(), now);
       updatePeaks(save, deck.list);
+      applyMilestones(save, deck.milestones);
     });
   } else {
     store.commit((save) => recompute(save, today()));
@@ -140,6 +144,9 @@ async function fetchJson(url) {
 async function loadDeck() {
   try {
     deck.chosen = await fetchJson('data/plants.json').catch(() => ({}));
+    deck.lore = await fetchJson('data/lore.json').catch(() => []);
+    deck.milestones = await fetchJson('data/milestones.json').catch(() => []);
+    deck.locations = await fetchJson('data/locations.json').catch(() => []);
     const { files } = await fetchJson('data/cards/index.json');
     const ordered = [...files].sort((a, b) => fileRank(b).localeCompare(fileRank(a)));
     const sets = await Promise.all(ordered.map((f) => fetchJson(`data/cards/${f}`)));

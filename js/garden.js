@@ -2,6 +2,7 @@ import { h } from './dom.js';
 import { SPECIES } from './rules.js';
 import { greetingFor, pokeLine, waterLine } from './lines.js';
 import { startWindow } from './windowfx.js';
+import { play } from './sound.js';
 
 const SCALE = 4;
 const CELL_W = 26;
@@ -56,6 +57,16 @@ function renderPlant(plant, band) {
   return wrap;
 }
 
+function renderDetail(detail, band) {
+  const el = h('div', { class: 'detail' });
+  el.style.left = px(detail.x);
+  el.style.top = px(detail.y);
+  el.style.zIndex = detail.y + 4;
+  el.style.backgroundImage = `url(art/out/f_${band}_details.png)`;
+  el.style.backgroundPosition = `-${detail.col * 66 * SCALE}px 0`;
+  return el;
+}
+
 function buildScene(ctx, plants, roomIndex) {
   const band = ctx.band();
   const asleep = band === 'night';
@@ -67,8 +78,12 @@ function buildScene(ctx, plants, roomIndex) {
   const can = !asleep && sprite(`art/out/fr_${band}_can.png`, 'can');
   if (can) can.style.zIndex = 125;
   const plantEls = new Map(plants.map((p) => [p.topic, renderPlant(p, band)]));
-  const scene = h('div', { class: 'scene' }, room, ...plantEls.values(), can, bot);
-  startWindow(scene, ROOMS[roomIndex].id, band);
+  const here = ctx.location();
+  const roomId = ROOMS[roomIndex].id;
+  const view = roomId === 'bay' && here.art && sprite(`art/out/loc_${here.id}_${band}.png`, 'room view');
+  const details = ctx.details(roomId).map((d) => renderDetail(d, band));
+  const scene = h('div', { class: 'scene' }, room, view, ...details, ...plantEls.values(), can, bot);
+  startWindow(scene, roomId, band, here.id);
   return { scene, bot, can, band, plantEls };
 }
 
@@ -80,6 +95,25 @@ function showSlip(scene, text) {
 }
 
 // Freakbot reacts when tapped. Every move is stepped on the art's 4 px grid.
+const frameOf = (band, name) => `art/out/fr_${band}_${name}.png`;
+
+// Now and then he looks around or yawns.
+function idleLife(bot, band) {
+  if (band === 'night' || reduced()) return;
+  const rest = bot.querySelector('.rest');
+  const timer = setInterval(() => {
+    if (!bot.isConnected) {
+      clearInterval(timer);
+      return;
+    }
+    if (bot.classList.contains('moving') || document.visibilityState !== 'visible') return;
+    rest.src = frameOf(band, ['fbL', 'fbR', 'fby'][Math.floor(Math.random() * 3)]);
+    setTimeout(() => {
+      if (!bot.classList.contains('moving')) rest.src = bot.dataset.base;
+    }, 1300);
+  }, 8000);
+}
+
 const MOVES = {
   jump: [[0, -2], [0, -4], [0, -5], [0, -4], [0, -2], [0, 0], [0, -1], [0, 0]],
   wiggle: [[-1, 0], [1, 0], [-1, 0], [1, 0], [-1, 0], [1, 0], [0, 0]],
@@ -94,15 +128,15 @@ function poke(scene, bot, band) {
   const asleep = band === 'night';
   const fed_up = pokes.length >= 4;
   showSlip(scene, pokeLine(asleep, fed_up));
+  play('poke');
   if (poking || reduced()) return;
   poking = true;
 
   const rest = bot.querySelector('.rest');
-  const idle = rest.src;
+  const idle = bot.dataset.base;
   const name = fed_up ? 'wiggle' : asleep ? 'jump' : ['jump', 'wiggle', 'cheer'][Math.floor(Math.random() * 3)];
   bot.classList.add('moving');
-  if (asleep) rest.src = 'art/out/fr_night_fbo.png';
-  if (name === 'cheer') rest.src = `art/out/fr_${band}_fbw.png`;
+  rest.src = frameOf(band, name === 'cheer' ? 'fbw' : name === 'wiggle' ? 'fbx' : 'fbh');
 
   const sparks = name === 'cheer'
     ? [[-3, 6], [33, 3], [-1, 18], [34, 16]].map(([x, y]) => {
@@ -154,6 +188,8 @@ export function renderGarden(ctx) {
   ctx.room = Math.min(ctx.room, Math.max(0, rooms.length - 1));
   const { scene, bot, band } = buildScene(ctx, rooms[ctx.room] ?? [], ctx.room);
   bot.classList.add('pokeable');
+  bot.dataset.base = bot.querySelector('.rest').src;
+  idleLife(bot, band);
   bot.addEventListener('click', (e) => {
     e.stopPropagation();
     poke(scene, bot, band);
@@ -169,9 +205,19 @@ export function renderGarden(ctx) {
       if (Math.abs(dx) > 40) nav.move(dx < 0 ? 1 : -1);
     });
   }
-  if (!greeted && ctx.deck.complete) {
+  if (ctx.deck.complete) {
+    const here = ctx.location();
+    let arrived = false;
+    try {
+      const seen = localStorage.getItem('freakbot.place');
+      localStorage.setItem('freakbot.place', here.id);
+      arrived = seen !== null && seen !== here.id;
+    } catch {
+      // Without storage he simply never announces the trip.
+    }
+    if (arrived) showSlip(scene, here.line);
+    else if (!greeted) showSlip(scene, greetingFor(rooms.flat()));
     greeted = true;
-    showSlip(scene, greetingFor(rooms.flat()));
   }
   const done = ctx.todayEntry()?.done;
   return {
@@ -197,8 +243,9 @@ export function playWater(ctx, card, before, done) {
   const [cellX, cellY] = ROOMS[target.room].slots[target.slot];
   const centre = cellX + CELL_W / 2;
   const standX = Math.max(0, Math.min(65, centre < 48 ? Math.round(centre) : Math.round(centre) - 32));
-  const water = band === 'night' ? 'art/out/fr_night_fbw.png' : `art/out/fr_${band}_fbw.png`;
-  const awake = band === 'night' ? 'art/out/fr_night_fbo.png' : `art/out/fr_${band}_fbo.png`;
+  const water = frameOf(band, 'fbw');
+  const awake = frameOf(band, 'fbo');
+  const look = standX >= HOME_X ? 'R' : 'L';
   const rest = bot.querySelector('.rest');
   bot.querySelector('.blink')?.remove();
   bot.classList.add('moving');
@@ -241,12 +288,20 @@ export function playWater(ctx, card, before, done) {
   });
   let phase = 'roll';
   let ticks = 0;
+  let wheel = 0;
+  const after_moves = grade === 'got'
+    ? [[0, -2, 'fbh'], [0, -4, 'fbh'], [0, -2, 'fbh'], [0, 0, 'fbh'], [0, -2, 'fbh'], [0, 0, 'fbh']]
+    : grade === 'missed'
+      ? [[-1, 0, 'fbx'], [1, 0, 'fbx'], [-1, 0, 'fbx'], [1, 0, 'fbx'], [0, 0, 'fbx'], [0, 0, 'fbx']]
+      : [];
   const dropTop = cellY + 6;
   timer = setInterval(() => {
     if (phase === 'roll') {
       if (Math.abs(x - standX) > 4) {
         x += x < standX ? 4 : -4;
         bot.style.left = px(x);
+        wheel += 1;
+        rest.src = frameOf(band, `${wheel % 2 ? 'fbr' : 'fb'}${look}`);
         return;
       }
       x = standX;
@@ -264,7 +319,14 @@ export function playWater(ctx, card, before, done) {
     if (ticks === 5) {
       refreshPlant();
       showSlip(scene, waterLine(target.topic, grade, grew));
+      play(grade === 'missed' ? 'missed' : grade === 'got' ? 'got' : 'water');
     }
-    if (ticks >= 14) finish();
+    if (ticks >= 9 && ticks - 9 < after_moves.length) {
+      const [dx, dy, frame] = after_moves[ticks - 9];
+      drops.forEach((d) => d.remove());
+      bot.style.transform = `translate(${dx * SCALE}px, ${dy * SCALE}px)`;
+      rest.src = frameOf(band, frame);
+    }
+    if (ticks >= 9 + Math.max(after_moves.length, 5)) finish();
   }, TICK_MS);
 }

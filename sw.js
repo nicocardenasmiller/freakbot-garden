@@ -1,5 +1,5 @@
 // Shell and art come from cache and refresh in the background. Cards prefer the network.
-const CACHE = 'freakbot-v8';
+const CACHE = 'freakbot-v9';
 
 const fonts = [
   'michroma-latin-400-normal',
@@ -15,6 +15,11 @@ const art = [
   ...['morning', 'day', 'golden', 'night'].flatMap((b) => [`f_${b}_bg`, `f_${b}_archive_bg`, `f_${b}_plants`, `ui_${b}_plate`, `ui_${b}_panel`]),
   ...['morning', 'day', 'golden'].flatMap((b) => [`fr_${b}_fbo`, `fr_${b}_fbb`, `fr_${b}_fbw`, `fr_${b}_can`]),
   'fr_night_fbn', 'fr_night_fbo', 'fr_night_fbw',
+  ...['morning', 'day', 'golden', 'night'].flatMap((b) => [
+    `f_${b}_details`,
+    ...['fbL', 'fbR', 'fbrL', 'fbrR', 'fby', 'fbx', 'fbh'].map((n) => `fr_${b}_${n}`),
+    ...['port', 'college', 'ringed'].map((l) => `loc_${l}_${b}`),
+  ]),
 ].map((f) => `art/out/${f}.png`);
 
 const SHELL = [
@@ -28,6 +33,8 @@ const SHELL = [
   'js/garden.js',
   'js/herbarium.js',
   'js/lines.js',
+  'js/journal.js',
+  'js/sound.js',
   'js/windowfx.js',
   'js/rules.js',
   'js/settings.js',

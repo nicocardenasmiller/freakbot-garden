@@ -1,0 +1,26 @@
+[
+  {
+    "id": "orbit",
+    "name": "Orbit",
+    "art": false,
+    "line": "de vuelta en orbita, pana."
+  },
+  {
+    "id": "port",
+    "name": "Old port city",
+    "art": true,
+    "line": "llegamos al puerto viejo. mira los cerros, po."
+  },
+  {
+    "id": "college",
+    "name": "Ruined college town",
+    "art": true,
+    "line": "una ciudad de profesores. nadie entrego nada."
+  },
+  {
+    "id": "ringed",
+    "name": "Ringed planet",
+    "art": true,
+    "line": "wepa, un planeta con anillos. bacan."
+  }
+]

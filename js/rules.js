@@ -4,6 +4,7 @@ export const WATER = { got: 10, partial: 6, missed: 3 };
 const REVIEW_WEIGHT = { missed: 6, partial: 4, got: 1 };
 const DAILY = 3;
 const MAX_FREEZES = 2;
+const WATER_PER_TRIP = 200;
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -312,6 +313,38 @@ export function addExtraCard(save, cardId, day, now) {
   const entry = (save.days[day] ??= { cards: [], done: false, frozen: false, water: 0, at: now });
   entry.extra = [...new Set([...(entry.extra ?? []), cardId])];
   entry.at = now;
+}
+
+// ---- Journal, milestones, travel (DESIGN.md 5.5 to 5.7) ----
+
+export const chaptersUnlocked = (daysDone, total) => Math.min(daysDone, total);
+export const locationIndex = (water, count) => (count ? Math.floor(water / WATER_PER_TRIP) % count : 0);
+export const reachedMilestones = (best, milestones) => milestones.filter((m) => best >= m.days);
+
+export function applyMilestones(save, milestones) {
+  const reached = reachedMilestones(save.profile.best, milestones).map((m) => m.id);
+  save.profile.unlocked = [...new Set([...(save.profile.unlocked ?? []), ...reached])];
+}
+
+export function weekStart(day) {
+  const weekday = (new Date(toUTC(day)).getUTCDay() + 6) % 7;
+  return addDays(day, -weekday);
+}
+
+export function weeklyResults(save) {
+  const weeks = new Map();
+  const week = (day) => {
+    const key = weekStart(day);
+    if (!weeks.has(key)) weeks.set(key, { week: key, daysDone: 0, water: 0, got: 0, partial: 0, missed: 0 });
+    return weeks.get(key);
+  };
+  for (const [day, entry] of Object.entries(save.days)) {
+    const w = week(day);
+    w.water += entry.water;
+    if (entry.done) w.daysDone += 1;
+  }
+  for (const r of Object.values(save.responses)) week(r.day)[r.grade] += 1;
+  return [...weeks.values()].sort((x, y) => (x.week < y.week ? 1 : -1));
 }
 
 // Key order differs between devices, so compare with sorted keys.
