@@ -244,6 +244,7 @@ Felix accepted that questions are public (they summarize published papers).
 ### 6.7 Android app
 - `app/` is a Capacitor shell (id `garden.freakbot.app`) that loads the live site, so web changes reach the phone without a reinstall. Only native changes need a new APK.
 - It adds a daily 19:35 reminder that only fires when today's cards are not done (a day finished on the Mac counts once the phone app has opened), and a home-screen streak widget drawn as pixel art on a 2 dp grid: Freakbot in a mood that follows the day, a water drop and streak count (gold from 30 days), the last 7 days as squares, and a status in Spanish. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
+- Hardened: no app data backup, no WebView or app debugging, and only the internet, notification and boot permissions.
 - Installed directly on the phone, not through the Play Store. Build with `cd app/android && ./gradlew assembleDebug`.
 - The Mac keeps using the website.
 
@@ -260,7 +261,7 @@ Scheduled jobs:
 - **Weekly reading quiz** (Fridays 08:40 ET, a local task on the Mac; moved up from Phase 3): reads `save.json`, writes `data/cards/<date>.json` in the card format above and updates `index.json`, commits and pushes to `freakbot-garden`. It also reviews answers typed since the last run against each card's `points`; where a grade looks too generous it lowers the grade in `save.json` and sets `reviewed`, so the card comes back sooner, and it reports what it changed.
 - **Streak reminder** (daily 19:35, on the phone): built into the Android app, section 6.7. The old cloud task no longer exists.
 
-Migration from the old quiz page (claude.ai artifact "Friday Reading Quiz"): checked on 9 Nov 2026. It held no responses or profile, one unfinished day, and the same 12 questions as `data/cards/2026-11-09.json`, so there was nothing to convert.
+Migration from the old quiz page (claude.ai artifact "Friday Reading Quiz"): checked on 9 Nov 2026. It held no responses or profile, one unfinished day, and the same 12 questions as `data/cards/2026-11-09.json`, so there was nothing to convert. The page was then retired.
 
 ---
 
@@ -281,7 +282,7 @@ Migration from the old quiz page (claude.ai artifact "Friday Reading Quiz"): che
 
 **Phase 3: polish**
 - Journal and lore, milestones, travel between destinations (section 5.7), more Freakbot frames, nalca redraw, sound off by default.
-- Migrate old data; retire the claude.ai quiz page.
+- Old quiz page checked and retired, no data to migrate (section 7).
 
 ---
 

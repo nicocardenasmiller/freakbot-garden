@@ -7,6 +7,7 @@
     "cleartext": false
   },
   "android": {
-    "backgroundColor": "#D9DAD4"
+    "backgroundColor": "#D9DAD4",
+    "webContentsDebuggingEnabled": false
   }
 }
