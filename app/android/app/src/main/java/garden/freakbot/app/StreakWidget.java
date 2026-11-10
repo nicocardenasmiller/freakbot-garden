@@ -142,7 +142,7 @@ public class StreakWidget extends AppWidgetProvider {
         drawSky(b, w, h, SKIES[band], band);
 
         int ox = (w - BASE_W) / 2;
-        int oy = (h - BASE_H) / 2;
+        int oy = h - BASE_H;
         // deck under the crew
         int deck = oy + BASE_H - 4;
         rect(b, 0, deck, w, h - deck, HULL_DARK);
@@ -159,20 +159,20 @@ public class StreakWidget extends AppWidgetProvider {
             for (int x = 0; x < 9; x++) {
                 if (BIG_DROP[y].charAt(x) != '#') continue;
                 boolean edge = x == 0 || x == 8 || y == BIG_DROP.length - 1 || BIG_DROP[y].charAt(x - 1) != '#' || BIG_DROP[y].charAt(x + 1) != '#' || (y > 0 && BIG_DROP[y - 1].charAt(x) != '#');
-                if (done || edge) b.setPixel(rx + x, oy + 12 + y, dropColor);
+                if (done || edge) b.setPixel(rx + x, oy + 13 + y, dropColor);
             }
         }
         if (done) {
-            rect(b, rx + 2, oy + 18, 1, 2, white);
-            b.setPixel(rx + 3, oy + 17, white);
+            rect(b, rx + 2, oy + 19, 1, 2, white);
+            b.setPixel(rx + 3, oy + 18, white);
         }
-        int size = streak < 10 ? 4 : streak < 100 ? 3 : 2;
-        shadowText(b, String.valueOf(streak), rx + 12, oy + 11 + (size == 4 ? 0 : size == 3 ? 3 : 5), white, size);
+        int size = streak < 100 ? 3 : 2;
+        shadowText(b, String.valueOf(streak), rx + 12, oy + (size == 3 ? 10 : 13), white, size);
 
         String week = shiftedWeek(prefs, today);
         for (int i = 0; i < 7; i++) {
             int x = rx + i * 5;
-            int y = oy + 27;
+            int y = oy + 28;
             char day = week.charAt(i);
             rect(b, x, y, 4, 4, day == '1' ? gold : day == 'f' ? ICE : Color.parseColor("#4A5478"));
             if (day == '1') b.setPixel(x, y, white);
@@ -197,14 +197,14 @@ public class StreakWidget extends AppWidgetProvider {
         for (int[] star : STARS) {
             if (star[0] * w / 85 < w && star[1] < h) b.setPixel(star[0] * w / 85, star[1], LIGHT);
         }
-        int cx = w * 3 / 4;
-        int cy = h + 18;
-        int radius = 44;
+        int cx = w * 3 / 10;
+        int cy = h + 16;
+        int radius = 42;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 double d = Math.hypot(x - cx, y - cy);
                 if (d > radius) continue;
-                double light = Math.hypot(x - (cx - 22), y - (cy - 36));
+                double light = Math.hypot(x - (cx + 14), y - (cy - 38));
                 int shade = light < 26 ? 5 : light < 42 ? 4 : 3;
                 b.setPixel(x, y, colors[d > radius - 1.2 ? 6 : shade]);
             }
