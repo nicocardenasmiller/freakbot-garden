@@ -1,12 +1,12 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.2 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9)
+Version 1.3 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
 This file is the source of truth for every build session. Read it fully before changing code. When a decision here changes, update this file in the same commit.
 
-Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (boards F1 to F6). Earlier rounds on that canvas are rejected directions; ignore them.
+Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (boards F1 to F6). Earlier rounds on that canvas are rejected directions; ignore them. Since 1.3 the room itself follows section 4.2, not those boards.
 
 ---
 
@@ -15,7 +15,7 @@ Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (b
 **Goals**
 - Make daily recall of read papers a 3-minute habit (spaced repetition, not trivia).
 - Make progress visible as a garden that fills in over months, tied to real topics.
-- Feel calm and cozy: dark academia room, pixel art, one character, no clutter.
+- Feel calm and cozy: a dark academia study inside a derelict, overgrown ship, pixel art, one character.
 - Work offline on the phone; sync progress between phone and Mac.
 
 **Non-goals (v1)**
@@ -29,7 +29,7 @@ Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (b
 ## 2. Core loop
 
 1. Open the app. The conservatory shows the time of day from the phone clock. Freakbot says one line (often which plant is thirsty).
-2. Tap **Water the garden**. Answer 3 cards (index cards). Short answers are self-graded: knew it / partly / not yet. Multiple choice grades itself.
+2. Tap **Water the garden**. Answer 3 cards (index cards). Short answers are graded by tapping the key points you remembered: all is knew it, some is partly, none is not yet. Multiple choice grades itself.
 3. Each answer waters the plant for that card's topic. Freakbot rolls to that plant and waters it (animation F6).
 4. After the third card: streak updates, rewards (if any) show, and a new Journal page (lore) unlocks.
 5. Each paper you summarize adds 2–3 cards the same day, and a new topic plants its seed right away. The Friday task adds review and synthesis cards across papers.
@@ -41,7 +41,7 @@ Visual reference: the design canvas "Freakbot's Base: Style Options", Round 7 (b
 | Tab | Screen | Reference board |
 |---|---|---|
 | Garden | The conservatory scene, stat line, one primary button, Freakbot's slip | F1 morning, F2 golden, F3 night, F6 animated |
-| Cards | Index-card quiz flow (front: question, write answer; back: answer, explanation, source, grade) | F5 |
+| Cards | Index-card quiz flow (front: question, optional written answer; back: key points to tap, full answer, explanation, source) | F5 |
 | Herbarium | Grid of plant sheets; tap one for its herbarium sheet (specimen, label, papers cited, "Water this plant") | F4 |
 | Journal | Lore chapters unlocked so far, written as journal pages; past weekly results | (not mocked yet) |
 
@@ -63,37 +63,41 @@ Layout rules (phone 390 px wide reference):
 - Respect `prefers-reduced-motion`: freeze animations, keep slips.
 
 ### 4.2 The room
-A small Victorian conservatory that doubles as a study. Fixed composition (do not rearrange per screen):
-- Back: four gothic-arched glass panes with iron mullions. Outside: the overgrown scrapyard skyline with a crane (Freakbot's past, kept at a distance).
+A derelict ship docked above a rainy neon port city, its conservatory overgrown and kept as a study. Dark academia inside, retro-future hull around it. Fixed composition (do not rearrange per screen):
+- Back: four tall arched viewports with structural ribs and iron mullions. Outside: the city, rain, one bright billboard.
+- Hull: long aligned plates, conduit, cables, vents, a junction box, hazard stripes, a strip of deck lights. No staggered, brick-like or speckled surfaces.
+- Vines clump in the corners and hang from the ceiling, weeds at the deck edge. Never an even garland.
 - Hanging copihue basket top centre.
-- Left: writing desk with stacked books, green banker's lamp, open notebook, inkwell; candle at night.
-- Right: three-tier étagère (plant stand) with 6 small clay pots.
-- Floor: wood planks, worn burgundy rug with gold border centre, big floor pots left and right.
+- Left: writing desk with stacked books, green banker's lamp, open notebook, inkwell; candle at night. Above it the dusty rose LIBROS sign, the one hot light in the room.
+- Right: three-tier steel étagère (plant stand) with 6 small clay pots.
+- Floor: metal deck with seams running to the viewports, worn wine rug with gold border centre, big floor pots left and right.
 - Freakbot stands on the rug; brass watering can beside him.
+
+Color: keep accents to dusty rose, amber and ice, and foliage cool. Avoid pure red next to bright green.
 
 ### 4.3 Time of day (phone clock)
 | Band | Hours | Sky | Lighting |
 |---|---|---|---|
-| Morning | 05:00 to 11:00 | pale cream to blue-grey | sun shafts across the floor, lamp off |
-| Day | 11:00 to 17:00 | clear blue (to draw; not mocked) | flat, lamp off |
-| Golden | 17:00 to 21:00 | amber to rose to plum | long warm shafts, lamp on |
-| Night | 21:00 to 05:00 | navy, stars, crescent moon | lamp + candle glows, moonlight patch, Freakbot asleep |
+| Morning | 05:00 to 11:00 | pale smog, grey-green to cream | soft light across the deck, lamp off, sign dim |
+| Day | 11:00 to 17:00 | overcast blue with rain | flat and cool, lamp off |
+| Golden | 17:00 to 21:00 | amber smog | warm shafts, lamp on |
+| Night | 21:00 to 05:00 | deep blue, city lights, rain | lamp, candle and sign glows, Freakbot asleep |
 
-Implementation: render the room once per band (pre-baked PNGs) plus Freakbot and plants as separate layers so they can move. Plants are graded to match the band (multipliers in `art/final.py → grade()`). Until the Day art exists (Phase 3), the Day band shows the morning room.
+Implementation: render the room once per band (pre-baked PNGs) plus Freakbot and plants as separate layers so they can move. Plants are graded to match the band (multipliers in `art/final.py → BANDS`).
 
 ### 4.4 Palette (UI tokens)
 | Token | Hex | Use |
 |---|---|---|
-| ink | #17110D | app background (night: #0F0C0A) |
+| ink | #141D20 | app background (night: #0E1518) |
 | parchment | #EADFC6 | cards, slips, primary surface |
 | card | #F4EEDF | index cards |
 | text-dark | #2A1D15 | text on parchment |
-| text-muted | #B8A888 | secondary text on ink |
+| text-muted | #A8B6B2 | secondary text on ink |
 | brass | #B08D4A | small-caps labels, active tab |
 | burgundy | #7A2632 | destructive-weight actions, card rule (#B5413F) |
 | bottle | #2F4A35 | secondary accent |
 | rule-blue | #A9C3D6 | ruled lines on cards |
-| line | #4A3626 | dividers on ink |
+| line | #33454A | dividers on ink |
 
 ### 4.5 Type
 - Cormorant Garamond (display, 500/600, italic): titles, plant names, primary buttons.
@@ -172,7 +176,7 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 
 ### 6.1 Stack
 - Static site, no framework required (vanilla JS modules) or a small Vite + Preact build. Keep the bundle under 300 KB excluding art.
-- PWA: `manifest.webmanifest` (name "Freakbot", icon from the sprite, `display: standalone`, theme #17110D) and a service worker that caches the shell, art and current cards for offline use.
+- PWA: `manifest.webmanifest` (name "Freakbot", icon from the sprite, `display: standalone`, theme #141D20) and a service worker that caches the shell, art and current cards for offline use.
 - Hosting: GitHub Pages from the public repo, at `https://freakbot.nicolascardenasmiller.com/`.
 
 ### 6.2 Repos
@@ -202,24 +206,25 @@ Felix accepted that questions are public (they summarize published papers).
       "options": ["..."],
       "correct": 0,
       "answer": "...",
+      "points": ["..."],
       "explanation": "...",
       "source": "zotero_library/bermeoAidNotOil2016.md · pp. 7-13"
     }
   ]
 }
 ```
-`data/cards/index.json` lists all card files (weekly sets `<date>.json` and summary-time batches `<date>-batch.json`) so the app can load them. Batch card ids look like `b-<citekey>-1`.
+`points` holds 2 or 3 key points taken from `answer`, required on `short` cards. `data/cards/index.json` lists all card files (weekly sets `<date>.json` and summary-time batches `<date>-batch.json`) so the app can load them. Batch card ids look like `b-<citekey>-1`.
 
 ### 6.4 Save file (`save.json` in the private repo)
 ```json
 {
   "v": 1,
-  "responses": { "<card id>": { "grade": "got|partial|missed", "at": "ISO", "day": "YYYY-MM-DD", "choice": 0, "text": "..." } },
+  "responses": { "<card id>": { "grade": "got|partial|missed", "at": "ISO", "day": "YYYY-MM-DD", "choice": 0, "points": [0, 2], "text": "...", "reviewed": "note" } },
   "days": { "YYYY-MM-DD": { "cards": ["<card id>"], "done": true, "frozen": false, "water": 26, "at": "ISO" } },
   "profile": { "streak": 0, "best": 0, "freezes": 0, "water": 0, "daysDone": 0, "lastDay": null, "unlocked": [] }
 }
 ```
-Keep only the latest response per card in `responses`; append history to `history/<YYYY-MM>.jsonl` if needed later.
+`points` lists the key points tapped. `reviewed` is set by the Friday review when it lowers a grade, with `at` bumped so the change wins the merge. Keep only the latest response per card in `responses`; append history to `history/<YYYY-MM>.jsonl` if needed later.
 
 ### 6.5 Sync
 - Writes go to localStorage first (works offline), then to GitHub through the Contents API (`PUT /repos/{owner}/freakbot-garden-save/contents/save.json` with the file `sha`).
@@ -235,8 +240,8 @@ New cards come from two places:
 1. **Summary time (primary, added 9 Nov 2026).** When Claude writes a paper's Claude Summary (workflow in `claude/Reading_Batch_Workflow.md`, section 8), it also writes 2–3 cards for that paper from the PDF: one recall, one evidence, and optionally one concept or synthesis card. They go live the same day as `data/cards/<date>-batch.json`. New papers therefore enter the garden immediately: a new topic plants its seed the day the paper is summarized, not on Friday.
 2. **Friday task (secondary).** Fills gaps and adds what single-paper cards cannot: synthesis cards across papers, concept cards from `Concepts/`, new angles on papers you keep missing, and cards for any summarized paper that has none yet (for example notes summarized outside the workflow). It skips papers that already have batch cards unless you have been missing them.
 
-Two Claude scheduled tasks already exist and must be updated when the app ships:
-- **Weekly reading quiz** (Fridays 08:40 ET, runs on the Mac): today writes the quiz to the old claude.ai quiz page's database. Change it to: read `save.json` for history, write `data/cards/<date>.json` in the card format above (add `topics` and `citation`), update `index.json`, commit and push to `freakbot-garden`.
+Two Claude scheduled tasks exist:
+- **Weekly reading quiz** (Fridays 08:40 ET, a local task on the Mac; moved up from Phase 3): reads `save.json`, writes `data/cards/<date>.json` in the card format above and updates `index.json`, commits and pushes to `freakbot-garden`. It also reviews answers typed since the last run against each card's `points`; where a grade looks too generous it lowers the grade in `save.json` and sets `reviewed`, so the card comes back sooner, and it reports what it changed.
 - **Freakbot streak reminder** (daily 19:35 ET, cloud): today reads the old page's database. Change it to read `save.json` from the private repo.
 
 Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"): export its `quizzes`, `responses`, `days`, `profile` collections and convert to the new files once, before switching the tasks.
@@ -259,8 +264,8 @@ Migration from the current quiz page (claude.ai artifact "Friday Reading Quiz"):
 - Done when: answering a Trade card visibly waters the lemon tree.
 
 **Phase 3: polish**
-- Journal and lore, milestones, day sky art, more Freakbot frames, nalca redraw, sound off by default.
-- Update the two scheduled tasks; migrate old data; retire the claude.ai quiz page.
+- Journal and lore, milestones, more Freakbot frames, nalca redraw, sound off by default.
+- Update the streak reminder task; migrate old data; retire the claude.ai quiz page.
 
 ---
 

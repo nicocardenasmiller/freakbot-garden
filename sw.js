@@ -1,5 +1,5 @@
 // Shell and art come from cache and refresh in the background. Cards prefer the network.
-const CACHE = 'freakbot-v1';
+const CACHE = 'freakbot-v2';
 
 const fonts = [
   'cormorant-garamond-latin-500-normal',
@@ -13,8 +13,9 @@ const fonts = [
 ].map((f) => `assets/fonts/${f}.woff2`);
 
 const art = [
-  'f_morning_bg', 'f_golden_bg', 'f_night_bg',
+  'f_morning_bg', 'f_day_bg', 'f_golden_bg', 'f_night_bg',
   'fr_morning_fbo', 'fr_morning_fbb', 'fr_morning_can',
+  'fr_day_fbo', 'fr_day_fbb', 'fr_day_can',
   'fr_golden_fbo', 'fr_golden_fbb', 'fr_golden_can',
   'fr_night_fbn',
 ].map((f) => `art/out/${f}.png`);

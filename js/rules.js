@@ -30,8 +30,11 @@ export function timeBand(hour) {
   return 'night';
 }
 
-// Day has no art until Phase 3.
-export const artBand = (band) => (band === 'day' ? 'morning' : band);
+// Open-ended cards are graded by how many key points were remembered.
+export function gradeFromPoints(hit, total) {
+  if (hit <= 0) return 'missed';
+  return hit >= total ? 'got' : 'partial';
+}
 
 export const emptySave = () => ({
   v: 1,

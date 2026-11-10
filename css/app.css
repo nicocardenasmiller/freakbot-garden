@@ -8,21 +8,21 @@
 @font-face { font-family: 'VT323'; font-weight: 400; src: url('../assets/fonts/vt323-latin-400-normal.woff2') format('woff2'); font-display: swap; }
 
 :root {
-  --ink: #17110D;
+  --ink: #141D20;
   --parchment: #EADFC6;
   --card: #F4EEDF;
   --text-dark: #2A1D15;
-  --text-muted: #B8A888;
+  --text-muted: #A8B6B2;
   --brass: #B08D4A;
   --burgundy: #7A2632;
   --card-rule: #B5413F;
   --bottle: #2F4A35;
   --rule-blue: #A9C3D6;
-  --line: #4A3626;
+  --line: #33454A;
   --display: 'Cormorant Garamond', serif;
   --body: 'EB Garamond', serif;
 }
-:root[data-band='night'] { --ink: #0F0C0A; }
+:root[data-band='night'] { --ink: #0E1518; }
 
 * { box-sizing: border-box; margin: 0; }
 html, body { height: 100%; }
@@ -113,12 +113,21 @@ h1 { font: 600 26px/30px var(--display); color: var(--parchment); }
 .written-back { font-style: italic; }
 .card h3 { margin-top: 14px; color: var(--burgundy); }
 .card h3 + p { margin-top: 4px; }
-.explanation { font-size: 16px; }
+.explanation { font-size: 16px; margin-top: 10px; }
 .source { font-size: 14px; font-style: italic; opacity: 0.75; overflow-wrap: anywhere; }
 .tally { margin-top: 14px; color: var(--burgundy); }
 .verdict { margin-top: 10px; font-weight: 500; }
 .verdict.right { color: var(--bottle); }
 .verdict.wrong { color: var(--burgundy); }
+
+.points { display: grid; gap: 8px; margin-top: 6px; }
+.point { position: relative; padding: 8px 10px 8px 32px; text-align: left; line-height: 1.25; border: 1px solid var(--rule-blue); background: #FBF7EC; color: var(--text-dark); }
+.point::before { content: ''; position: absolute; left: 10px; top: 11px; width: 12px; height: 12px; border: 1px solid var(--text-dark); }
+.point.hit { background: #E3EBDD; border-color: var(--bottle); }
+.point.hit::before { background: var(--bottle); border-color: var(--bottle); }
+.full-answer { margin-top: 12px; }
+.full-answer summary { cursor: pointer; color: var(--burgundy); }
+.full-answer p { margin-top: 4px; }
 
 .options { display: grid; gap: 8px; margin-top: 14px; }
 .option { padding: 9px 10px; text-align: left; line-height: 1.25; border: 1px solid var(--rule-blue); background: #FBF7EC; color: var(--text-dark); }

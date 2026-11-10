@@ -1,10 +1,12 @@
 import { h } from './dom.js';
-import { WATER, gradeCard } from './rules.js';
+import { WATER, gradeCard, gradeFromPoints } from './rules.js';
 
-let session = { day: null, viewing: null, side: 'front', draft: '' };
+const GRADE_LABEL = { got: 'Knew it', partial: 'Partly', missed: 'Not yet' };
+
+let session = { day: null, viewing: null, side: 'front', draft: '', hits: new Set() };
 
 const reset = (day) => {
-  session = { day, viewing: null, side: 'front', draft: '' };
+  session = { day, viewing: null, side: 'front', draft: '', hits: new Set() };
 };
 
 const kicker = (ctx, ids, id, card) =>
@@ -100,13 +102,53 @@ function renderBack(ctx, ids, card) {
       response.grade === 'got' ? 'Correct' : `You chose: ${card.options[response.choice]}`,
     );
 
+  const checklist = !isChoice && card.points?.length > 0;
+  const gradeNow = () => gradeFromPoints(session.hits.size, card.points.length);
+  const gradeLabel = () => `${GRADE_LABEL[gradeNow()]} · +${WATER[gradeNow()]}`;
+  const submit =
+    checklist &&
+    h(
+      'button',
+      {
+        class: 'primary',
+        onclick: () => {
+          const payload = { grade: gradeNow(), points: [...session.hits].sort((a, b) => a - b) };
+          if (session.draft.trim()) payload.text = session.draft;
+          answer(ctx, card, payload);
+          next();
+        },
+      },
+      gradeLabel(),
+    );
+  const pointButtons =
+    checklist &&
+    card.points.map((text, i) =>
+      h(
+        'button',
+        {
+          class: 'point',
+          'aria-pressed': 'false',
+          onclick: (e) => {
+            const on = !session.hits.has(i);
+            if (on) session.hits.add(i);
+            else session.hits.delete(i);
+            e.currentTarget.classList.toggle('hit', on);
+            e.currentTarget.setAttribute('aria-pressed', String(on));
+            submit.textContent = gradeLabel();
+          },
+        },
+        text,
+      ),
+    );
+
   const body = [
     kicker(ctx, ids, card.id, card),
     h('p', { class: 'prompt small' }, card.prompt),
     session.draft.trim() && h('p', { class: 'written-back' }, session.draft),
     verdict,
-    h('h3', { class: 'smallcaps' }, 'Answer'),
-    h('p', {}, card.answer),
+    h('h3', { class: 'smallcaps' }, checklist ? 'Tap what you remembered' : 'Answer'),
+    checklist ? h('div', { class: 'points' }, ...pointButtons) : h('p', {}, card.answer),
+    checklist && h('details', { class: 'full-answer' }, h('summary', { class: 'smallcaps' }, 'Full answer'), h('p', {}, card.answer)),
     card.explanation && h('p', { class: 'explanation' }, card.explanation),
     h('p', { class: 'source' }, card.source),
   ];
@@ -115,6 +157,8 @@ function renderBack(ctx, ids, card) {
     const last = ids[ids.length - 1] === card.id;
     return { body, action: h('button', { class: 'primary', onclick: next }, last ? 'Finish' : 'Next card') };
   }
+
+  if (checklist) return { body, action: submit };
 
   const gradeButton = (label, grade) =>
     h(

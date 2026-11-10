@@ -3,7 +3,7 @@
 <title>Freakbot tests</title>
 <pre id="out">running</pre>
 <script type="module">
-import { addDays, emptySave, ensureDay, gradeCard, mergeSaves, pickDaily, recompute, stable, timeBand } from './js/rules.js';
+import { addDays, emptySave, ensureDay, gradeCard, gradeFromPoints, mergeSaves, pickDaily, recompute, stable, timeBand } from './js/rules.js';
 import { createStore } from './js/store.js';
 
 const results = [];
@@ -96,6 +96,10 @@ await test('reviews prefer different papers', () => {
   const r = Object.fromEntries(cards.map((c) => [c.id, { grade: 'missed', day: '2026-11-01' }]));
   const papers = pickDaily(cards, r, '2026-11-09').map((id) => cards.find((c) => c.id === id).paper);
   eq(new Set(papers).size, 3);
+});
+
+await test('key points set the grade', () => {
+  eq([gradeFromPoints(0, 3), gradeFromPoints(1, 3), gradeFromPoints(2, 3), gradeFromPoints(3, 3)], ['missed', 'partial', 'partial', 'got']);
 });
 
 await test('answers earn 10, 6 and 3 water', () => {

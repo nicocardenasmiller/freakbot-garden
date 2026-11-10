@@ -1,10 +1,9 @@
 import { h } from './dom.js';
-import { artBand } from './rules.js';
 
 const sprite = (src, cls) => h('img', { src, class: `art ${cls}`, alt: '', draggable: false });
 
 export function renderGarden(ctx) {
-  const band = artBand(ctx.band());
+  const band = ctx.band();
   const asleep = band === 'night';
   const room = sprite(`art/out/f_${band}_bg.png`, 'room');
   room.alt = 'The conservatory';
