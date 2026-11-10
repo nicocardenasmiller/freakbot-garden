@@ -1,6 +1,6 @@
 # Freakbot's Conservatory: design doc
 
-Version 1.8 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4)
+Version 1.9 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4; 1.9: the Archive has its own architecture, 5.7)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
@@ -173,7 +173,7 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 - One lore chapter per completed day, in order (13 chapters from the Mac app’s `lines.js`, Coronel Plumas appears in text only). After the last, weekly results pages only, until new chapters are written.
 
 ### 5.7 Rooms and travel
-- Rooms open in this order, every 12 plants: Hydroponics bay, Archive (shelves of books and card catalogs), Observatory (domed roof, telescope), Greenhouse deck (open to the sky). Swipe or tap between them on the Garden tab. Bay and Archive exist so far; the Observatory and Greenhouse deck get drawn when someone reaches 25 plants, and until then those plants live in the Herbarium only.
+- Rooms open in this order, every 12 plants: Hydroponics bay, Archive (shelves of books and card catalogs), Observatory (domed roof, telescope), Greenhouse deck (open to the sky). Swipe or tap between them on the Garden tab. Each room must have its own architecture, furniture, light and plant positions, not a repaint of another room. The Archive is a tall wooden library: two storeys of books, a gallery where the small plants sit, a round brass window, a reading table with green lamps, a card catalog, a ladder and a rug. Bay and Archive exist so far; the Observatory and Greenhouse deck get drawn when someone reaches 25 plants, and until then those plants live in the Herbarium only.
 - Destinations come from `data/locations.json`. The current one is `floor(water / 200) mod count`, so it needs no saved state and only answering cards can move the building. About one new view every 10 days.
 - First destinations: orbit, old port city (Valparaíso-inspired), ruined college town, ringed planet. Time-of-day lighting applies at every stop.
 

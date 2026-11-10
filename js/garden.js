@@ -11,16 +11,20 @@ const HOME_X = 38;
 const BOT_Y = 97;
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Top-left corner of each 26 x 34 cell: small plants, then floor, then hanging.
 export const ROOMS = [
-  { id: 'bay', label: 'Hydroponics bay', art: (band) => `art/out/f_${band}_bg.png` },
-  { id: 'archive', label: 'Archive', art: (band) => `art/out/f_${band}_archive_bg.png` },
-];
-
-// Top-left corner of each 26 x 34 cell: rack, then floor, then hanging.
-const SLOTS = [
-  [64, 50], [76, 50], [64, 60], [76, 60], [64, 70], [76, 70],
-  [1, 93], [71, 105], [17, 107], [29, 83],
-  [24, 0], [46, 0],
+  {
+    id: 'bay',
+    label: 'Hydroponics bay',
+    art: (band) => `art/out/f_${band}_bg.png`,
+    slots: [[64, 50], [76, 50], [64, 60], [76, 60], [64, 70], [76, 70], [1, 93], [71, 105], [17, 107], [29, 83], [24, 0], [46, 0]],
+  },
+  {
+    id: 'archive',
+    label: 'Archive',
+    art: (band) => `art/out/f_${band}_archive_bg.png`,
+    slots: [[3, 16], [15, 16], [27, 16], [43, 16], [55, 16], [67, 16], [0, 100], [72, 104], [12, 108], [58, 106], [6, 0], [66, 0]],
+  },
 ];
 const potFor = (slot) => (slot < 6 ? 0 : slot < 10 ? 1 : 2);
 
@@ -41,7 +45,7 @@ const plantColumn = (plant) => plant.stage + plant.thirst * 5;
 export const plantCell = (plant, band, scale) => sheetCell(band, plantColumn(plant), SPECIES.indexOf(plant.species), scale);
 
 function renderPlant(plant, band) {
-  const [x, y] = SLOTS[plant.slot];
+  const [x, y] = ROOMS[plant.room].slots[plant.slot];
   const wrap = h('div', { class: 'plant' });
   wrap.style.left = px(x);
   wrap.style.top = px(y);
@@ -133,7 +137,7 @@ export function playWater(ctx, card, before, done) {
   document.querySelector('#view').replaceChildren(h('div', { class: 'stage' }, scene));
   document.querySelector('#action').replaceChildren();
 
-  const [cellX, cellY] = SLOTS[target.slot];
+  const [cellX, cellY] = ROOMS[target.room].slots[target.slot];
   const centre = cellX + CELL_W / 2;
   const standX = Math.max(0, Math.min(65, centre < 48 ? Math.round(centre) : Math.round(centre) - 32));
   const water = band === 'night' ? 'art/out/fr_night_fbw.png' : `art/out/fr_${band}_fbw.png`;
@@ -148,7 +152,7 @@ export function playWater(ctx, card, before, done) {
   const grade = ctx.store.save.responses[card.id]?.grade;
   const refreshPlant = () => {
     const old = plantEls.get(target.topic);
-    old.replaceWith(renderPlant({ ...after, slot: target.slot }, band));
+    old.replaceWith(renderPlant({ ...after, room: target.room, slot: target.slot }, band));
   };
   let finished = false;
   let timer = null;

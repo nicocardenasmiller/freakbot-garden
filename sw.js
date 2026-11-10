@@ -1,5 +1,5 @@
 // Shell and art come from cache and refresh in the background. Cards prefer the network.
-const CACHE = 'freakbot-v6';
+const CACHE = 'freakbot-v7';
 
 const fonts = [
   'michroma-latin-400-normal',

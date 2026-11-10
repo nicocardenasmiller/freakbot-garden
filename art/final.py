@@ -43,7 +43,7 @@ BANDS={
 ADD=(0,0,0)
 GLYPH={'L':['100','100','100','100','111'],'I':['111','010','010','010','111'],'B':['110','101','110','101','110'],
        'R':['110','101','110','101','101'],'O':['111','101','101','101','111'],'S':['011','100','010','001','110'],
-       'F':['111','100','110','100','100'],'C':['011','100','100','100','011'],'H':['101','101','111','101','101'],'A':['010','101','111','101','101']}
+       'F':['111','100','110','100','100'],'C':['011','100','100','100','011'],'H':['101','101','111','101','101'],'A':['010','101','111','101','101'],'V':['101','101','101','101','010']}
 RINGS=[0,.22,.4,.55,.68,.8,.9,1.0]
 
 def ring(t):
@@ -235,6 +235,15 @@ def sign(s,word='LIBROS'):
             for dx,bit in enumerate(row):
                 if bit=='1': s.px(10+i*4+dx,45+dy,ROSE_LIGHT,lit=True)
 
+def sign_on_gallery(s,word):
+    width=len(word)*4+3; x0=48-width//2
+    for x in (x0+3,x0+width-4): s.rect(x,52,1,3,WOOD0)
+    s.rect(x0-1,54,width+2,9,S0); s.rect(x0,55,width,7,ROSE_DEEP,lit=True); s.rect(x0,55,width,1,ROSE,lit=True)
+    for i,ch in enumerate(word):
+        for dy,row in enumerate(GLYPH[ch]):
+            for dx,bit in enumerate(row):
+                if bit=='1': s.px(x0+2+i*4+dx,56+dy,ROSE_LIGHT,lit=True)
+
 def rack(s):
     # three-tier grow rack right, about twice Freakbot's height, with a side panel running back into the room
     quad(s,[(70,66),(66,69),(66,98),(70,110)],sh(S1,.7))
@@ -262,50 +271,129 @@ def pot(s,cx,base,col=POT,small=False):
     if not small: s.rect(cx-w//2+2,base+2,w-4,1,ICE,lit=True)
 SPINES=['#C4402E','#2B6CA3','#E0A92E','#1C2028','#EFEEE8','#6C7078','#8A3A2E','#3A5F85']
 
-def book_wall(s):
-    # the back of the Archive: shelves of books with one small porthole left of the old viewport
-    r=random.Random(17)
-    area=sorted(s.sky)
-    keep={(x,y) for x,y in area if math.hypot(x-48,y-42)<=8}
-    for x,y in area:
-        if (x,y) not in keep: s.px(x,y,'#2B2F37')
-    shelves=[34,46,58,70,80]
-    x0,x1=min(a for a,_ in area),max(a for a,_ in area)
-    for top,bot_ in zip([28]+shelves,shelves):
-        x=x0
-        while x<x1:
-            w=r.randint(1,3); h=r.randint(max(3,bot_-top-8),bot_-top-1); c=r.choice(SPINES)
-            for xx in range(x,x+w):
-                for y in range(bot_-h,bot_):
-                    if (xx,y) in area_set(area) and (xx,y) not in keep: s.px(xx,y,c if xx<x+w-1 or w==1 else sh(c,.75))
+WOOD0,WOOD1,WOOD2,WOOD3,PLASTER='#2A1E16','#3E2C1E','#5A4230','#7A5C42','#C9C2B0'
+BRASS,GREEN_LAMP='#B08D4A','#2F6B4A'
+
+def shelf(s,r,x0,x1,top,bottom,rows,shade=1.0):
+    # a frontal bookcase: wooden uprights, books standing at uneven heights
+    s.rect(x0,top,x1-x0,bottom-top,sh(WOOD0,shade))
+    h=(bottom-top)/rows
+    for k in range(rows):
+        y0=int(top+k*h)+1; y1=int(top+(k+1)*h)
+        x=x0+1
+        while x<x1-1:
+            w=r.randint(1,3); tall=r.randint(max(2,y1-y0-3),y1-y0)
+            if r.random()<.1:
+                x+=w; continue
+            c=r.choice(SPINES)
+            for xx in range(x,min(x+w,x1-1)):
+                f=shade*(.78 if xx==x+w-1 and w>1 else 1)
+                s.rect(xx,y1-tall,1,tall,sh(c,f))
             x+=w
-        for xx in range(x0,x1+1):
-            if (xx,bot_) in area_set(area) and (xx,bot_) not in keep: s.px(xx,bot_,'#6C5238')
-    for y in range(34,50):
-        for x in range(40,57):
-            d=math.hypot(x-48,y-42)
-            if 8<d<=9.5: s.px(x,y,S4 if y<42 else S0)
+        s.rect(x0,y1,x1-x0,1,sh(WOOD3,shade))
+    for x in range(x0,x1,15): s.rect(x,top,1,bottom-top,sh(WOOD2,shade))
 
-_AREA={}
-def area_set(area):
-    k=id(area)
-    if k not in _AREA: _AREA[k]=set(area)
-    return _AREA[k]
+def side_shelves(s,r,x0,x1,near_is_x0):
+    # bookcases along a side wall, shrinking toward the back
+    rows=7
+    for x in range(x0,x1):
+        t_=(x-x0)/max(1,x1-x0-1) if near_is_x0 else 1-(x-x0)/max(1,x1-x0-1)
+        top=-8+18*t_; bottom=150-64*t_; f=.5+.34*t_
+        c=r.choice(SPINES)
+        for k in range(rows):
+            y0=top+(bottom-top)*k/rows; y1=top+(bottom-top)*(k+1)/rows
+            if x%3==0: c=r.choice(SPINES)
+            tall=int((y1-y0)*(.7+.25*((x*7+k*3)%4)/3))
+            s.rect(x,int(y1)-tall,1,tall,sh(c,f))
+            s.rect(x,int(y1),1,1,sh(WOOD3,f))
 
-def catalog(s):
-    # card catalog left: the same footprint as the console, all small drawers
-    quad(s,[(0,94),(28,94),(31,87),(11,87)],S3)
-    line(s,(28,94),(31,87),S4)
-    quad(s,[(28,94),(31,87),(31,100),(28,110)],sh(S1,.74))
-    line(s,(31,87),(31,100),sh(S0,.7))
-    s.rect(0,94,28,16,'#6C5238'); s.rect(0,94,28,1,'#8A6C4C'); s.rect(0,109,28,1,'#3A2C20'); s.rect(27,94,1,16,'#3A2C20')
-    for y in range(96,108,4):
-        for x in range(1,26,5):
-            s.rect(x,y,4,3,'#7E6244'); s.rect(x,y,4,1,'#957555'); s.px(x+1,y+1,AMBER)
-    for i,(w,c,g) in enumerate([(9,'#3B3F7C','#F4C25E'),(8,'#7A2C55','#F4C25E'),(9,'#2F6A6A','#CFE4FF')]):
-        s.rect(2+i%2,92-2*i,w,2,c); s.rect(2+i%2,92-2*i,1,2,g)
-    # reading lamp
-    s.rect(18,92,6,2,'#8A6A2E'); s.rect(20,85,1,7,'#B08D4A'); s.rect(16,82,9,3,'#2B6CA3'); s.rect(16,82,9,1,'#5D93C4'); s.rect(17,85,7,1,'#FFE7A0',lit=True)
+def rose_window(s):
+    # a round port high on the back wall, the only sight of space from in here
+    b=BANDS[s.t]; cx,cy,rad=48,23,12
+    area=[(x,y) for y in range(cy-rad-1,cy+rad+2) for x in range(cx-rad-1,cx+rad+2) if math.hypot(x-cx,y-cy)<=rad]
+    for x,y in area:
+        s.im.putpixel((x,y),hx(b['space'][min(2,int((y-cy+rad)/(rad*2)*3))])); s.sky.add((x,y)); s.lit.discard((x,y))
+    tones=b['planet']
+    for x,y in area:
+        if math.hypot(x-54,y-46)<26: s.im.putpixel((x,y),hx(tones[1]))
+        if 25<=math.hypot(x-54,y-46)<26: s.im.putpixel((x,y),hx(b['limb']))
+    st=random.Random(3)
+    for _ in range(9):
+        x,y=st.randint(cx-9,cx+9),st.randint(cy-9,cy+4)
+        if (x,y) in s.sky: s.im.putpixel((x,y),hx('#FFFFFF'))
+    for k in range(8):
+        a=k*math.pi/4
+        line(s,(cx,cy),(cx+rad*math.cos(a),cy+rad*math.sin(a)),WOOD1)
+    for y in range(cy-rad-3,cy+rad+4):
+        for x in range(cx-rad-3,cx+rad+4):
+            d=math.hypot(x-cx,y-cy)
+            if rad<d<=rad+2.4: s.px(x,y,BRASS if y<cy else sh(BRASS,.68))
+    for k in range(12):
+        a=k*math.pi/6; s.px(cx+(rad+1.2)*math.cos(a),cy+(rad+1.2)*math.sin(a),WOOD0)
+
+def archive_room(s,r):
+    s.rect(0,0,W,H,WOOD0)
+    L,T,R,B=16,10,80,86
+    # plaster vault with dark beams
+    quad(s,[(0,0),(W,0),(R,T),(L,T)],PLASTER)
+    for k in range(1,6):
+        f=k/6; y=T*f; xl=L*f; xr=W-(W-R)*f
+        s.rect(int(xl),int(y),int(xr-xl),1,WOOD1)
+    for x in (0,24,48,72,96):
+        line(s,(x,0),(L+(x/96)*(R-L),T),WOOD1)
+    side_shelves(s,r,0,L,True)
+    side_shelves(s,r,R,W,False)
+    # plank floor running to the back wall
+    quad(s,[(L,B),(R,B),(W+18,H),(-18,H)],WOOD2)
+    for xb in range(-30,130,9):
+        line(s,(48+(xb-48)*.42,B),(xb,H),WOOD1)
+    for y,k in ((96,.8),(110,.9),(126,1.0)):
+        s.rect(0,y,W,1,sh(WOOD1,k))
+    # two storeys of books
+    shelf(s,r,L,R,T,46,3,.82)
+    shelf(s,r,L,R,52,B,3,.72)
+    rose_window(s)
+    # gallery running across the room
+    s.rect(L,46,R-L,6,WOOD3); s.rect(L,46,R-L,1,'#957555'); s.rect(L,51,R-L,1,WOOD0)
+    for x in range(L+2,R,7): s.px(x,49,BRASS)
+    s.rect(L,38,R-L,1,'#957555')
+    for x in range(L+1,R,3): s.rect(x,39,1,7,WOOD1)
+    s.rect(L,86,R-L,2,WOOD0)
+
+def archive_furniture(s):
+    # long reading table with two green lamps
+    for y in range(92,102):
+        for x in range(22,76): darken(s,x,y,.62)
+    quad(s,[(27,80),(69,80),(75,90),(21,90)],WOOD3)
+    line(s,(21,90),(75,90),'#957555')
+    s.rect(21,91,55,4,WOOD1); s.rect(21,94,55,1,WOOD0)
+    s.rect(24,95,3,9,WOOD0); s.rect(69,95,3,9,WOOD0)
+    for cx in (34,62):
+        s.rect(cx-2,84,5,1,BRASS); s.rect(cx,79,1,5,BRASS)
+        s.rect(cx-4,76,9,3,GREEN_LAMP); s.rect(cx-4,76,9,1,'#4E8E68')
+        s.rect(cx-3,79,7,1,'#FFE7A0',lit=True)
+    # open book and a stack
+    s.rect(44,84,9,3,'#E9DCC0'); s.rect(48,84,1,3,'#B9A880'); s.rect(45,85,2,1,'#5A4A3A'); s.rect(50,85,2,1,'#5A4A3A')
+    for i,(x,w,c) in enumerate(((54,6,'#2B6CA3'),(55,5,'#C4402E'))): s.rect(x,86-2*i,w,2,c)
+    # card catalog against the left wall
+    s.rect(0,62,21,46,WOOD2); s.rect(0,62,21,1,'#8A6C4C'); s.rect(20,62,1,46,WOOD0); s.rect(0,107,21,1,WOOD0)
+    for y in range(65,105,6):
+        for x in range(1,19,6):
+            s.rect(x,y,5,5,'#7E6244'); s.rect(x,y,5,1,'#957555'); s.rect(x+1,y+1,3,1,'#EFEEE8'); s.px(x+2,y+3,BRASS)
+    for y in range(108,114):
+        for x in range(0,24-(y-108)): darken(s,x,y,.6)
+    # library ladder leaning on the gallery
+    line(s,(84,40),(70,118),WOOD1); line(s,(90,40),(76,118),WOOD1)
+    line(s,(85,40),(71,118),WOOD3); line(s,(91,40),(77,118),WOOD3)
+    for k in range(1,11):
+        f=k/11; s.rect(int(85+f*-14),int(40+78*f),6,1,WOOD3)
+    # worn rug under Freakbot
+    quad(s,[(26,112),(70,112),(79,136),(17,136)],'#6E2230')
+    quad(s,[(29,114),(67,114),(74,134),(22,134)],'#B08D4A')
+    quad(s,[(30,115),(66,115),(73,133),(23,133)],'#2B4A73')
+    quad(s,[(34,118),(62,118),(67,130),(29,130)],'#6E2230')
+    for x in range(30,67,4): s.px(x,116,'#E0A92E')
+    for x in range(25,72,4): s.px(x,132,'#E0A92E')
 
 def scarf(img):
     p=img.load()
@@ -378,17 +466,17 @@ def pad(s):
         s.px(cx+31*math.cos(math.radians(a)),cy+11*math.sin(math.radians(a)),MINT,lit=True)
 
 def build(time, face='fbo', with_bot=True, room='bay'):
-    s=S(time); r=random.Random(21); hull(s); viewport(s)
-    if room=='archive': book_wall(s)
-    # remember the bare deck, for reflections
-    mask=Image.new('1',(W,H),0); d=ImageDraw.Draw(mask)
-    for i in (3,4,5): d.polygon([P(i,0,0),P(i,1,0),P(i,1,1),P(i,0,1)],fill=1)
-    m=mask.load(); s.floor={(x,y):s.im.getpixel((x,y)) for y in range(H) for x in range(W) if m[x,y] and (x,y) not in s.sky and (x,y) not in s.lit}
-    grime(s); floor_shadows(s)
-    if room=='archive': catalog(s); sign(s,'FICHAS')
-    else: console(s); sign(s)
-    rack(s); pad(s); bot_shadow(s)
-    glass(s)
+    s=S(time); s.room=room; s.lights=[]; s.floor={}; r=random.Random(21)
+    if room=='archive':
+        archive_room(s,r); archive_furniture(s); sign_on_gallery(s,'ARCHIVO')
+    else:
+        hull(s); viewport(s)
+        # remember the bare deck, for reflections
+        mask=Image.new('1',(W,H),0); d=ImageDraw.Draw(mask)
+        for i in (3,4,5): d.polygon([P(i,0,0),P(i,1,0),P(i,1,1),P(i,0,1)],fill=1)
+        m=mask.load(); s.floor={(x,y):s.im.getpixel((x,y)) for y in range(H) for x in range(W) if m[x,y] and (x,y) not in s.sky and (x,y) not in s.lit}
+        grime(s); floor_shadows(s); console(s); sign(s); rack(s); pad(s); glass(s)
+    bot_shadow(s)
     overgrowth(s,r)
     if with_bot: bot(s,'fbn' if time=='night' else face,44,102)
     return grade(s)
@@ -432,6 +520,11 @@ def grade(s):
                         if k>0: p[x,y]=tuple(int(v+(c-v)*k) for v,c in zip(p[x,y],col))
     strip=hx(b['strip'])
     for lx,ly in s.lights: glow(lx,ly,8,strip,.16)
+    if s.room=='archive':
+        lamp=.62 if t in ('golden','night') else .4
+        glow(34,86,24,(255,206,120),lamp); glow(62,86,24,(255,206,120),lamp)
+        glow(48,59,16,(224,96,74),b['sign']*.26)
+        return s.im
     glow(21,47,22,(224,96,74),b['sign']*.26)
     glow(20,89,10,(224,169,46),.3)
     glow(83,88,18,(224,96,74),.1)
