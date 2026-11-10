@@ -42,6 +42,7 @@ export const emptySave = () => ({
   responses: {},
   days: {},
   peaks: {},
+  layout: {},
   profile: { streak: 0, best: 0, freezes: 0, water: 0, daysDone: 0, lastDay: null, unlocked: [] },
 });
 
@@ -194,6 +195,15 @@ export function mergeSaves(a, b, today) {
     out.days[d] = entry;
   }
 
+  const resetAt = [a.layoutResetAt, b.layoutResetAt].filter(Boolean).sort().pop();
+  if (resetAt) out.layoutResetAt = resetAt;
+  for (const layout of [a.layout ?? {}, b.layout ?? {}]) {
+    for (const [topic, pin] of Object.entries(layout)) {
+      if (resetAt && pin.at <= resetAt) continue;
+      if (!out.layout[topic] || pin.at > out.layout[topic].at) out.layout[topic] = pin;
+    }
+  }
+
   for (const peaks of [a.peaks ?? {}, b.peaks ?? {}]) {
     for (const [topic, peak] of Object.entries(peaks)) out.peaks[topic] = Math.max(out.peaks[topic] ?? 0, peak);
   }
@@ -283,20 +293,53 @@ export function buildPlants(cards, appearance, chosen, save, day) {
     });
 }
 
-// Young plants go on the rack, grown ones on the floor and in the hanging baskets, spilling over when full.
-export function layoutRooms(plants, roomCount) {
-  const rooms = [];
-  for (let i = 0; i < roomCount && i * ROOM_SIZE < plants.length; i += 1) {
-    const free = { rack: [...RACK_SLOTS], big: [...BIG_SLOTS] };
-    rooms.push(
-      plants.slice(i * ROOM_SIZE, (i + 1) * ROOM_SIZE).map((plant) => {
-        const [first, second] = plant.stage <= SAPLING ? ['rack', 'big'] : ['big', 'rack'];
-        const slot = free[first].length ? free[first].shift() : free[second].shift();
-        return { ...plant, room: i, slot };
-      }),
-    );
-  }
+// Plants the player has placed keep their spot. The rest take the first free spot: young ones on the
+// rack, grown ones on the floor and in the hanging baskets, spilling over when a group is full.
+export function layoutRooms(plants, roomCount, layout = {}) {
+  const open = Math.min(roomCount, Math.max(1, Math.ceil(plants.length / ROOM_SIZE)));
+  const taken = Array.from({ length: open }, () => new Set());
+  const spots = new Map();
+  plants.forEach((plant, i) => {
+    const pin = layout[plant.topic];
+    const valid = pin && Number.isInteger(pin.room) && pin.room >= 0 && pin.room < open && Number.isInteger(pin.slot) && pin.slot >= 0 && pin.slot < ROOM_SIZE;
+    if (!valid || taken[pin.room].has(pin.slot)) return;
+    taken[pin.room].add(pin.slot);
+    spots.set(i, { room: pin.room, slot: pin.slot });
+  });
+  plants.forEach((plant, i) => {
+    if (spots.has(i)) return;
+    const room = taken.findIndex((used) => used.size < ROOM_SIZE);
+    if (room < 0) return;
+    const order = plant.stage <= SAPLING ? [...RACK_SLOTS, ...BIG_SLOTS] : [...BIG_SLOTS, ...RACK_SLOTS];
+    const slot = order.find((s) => !taken[room].has(s));
+    taken[room].add(slot);
+    spots.set(i, { room, slot });
+  });
+  const rooms = taken.map(() => []);
+  plants.forEach((plant, i) => {
+    const spot = spots.get(i);
+    if (spot) rooms[spot.room].push({ ...plant, ...spot });
+  });
   return rooms;
+}
+
+// Moves a plant to a spot, swapping with whatever stands there. The first move pins every plant
+// where it stands, so nothing else shuffles around on its own afterwards.
+export function movePlant(save, rooms, topic, room, slot, now) {
+  const all = rooms.flat();
+  const from = all.find((p) => p.topic === topic);
+  if (!from || !rooms[room] || (from.room === room && from.slot === slot)) return;
+  const other = rooms[room].find((p) => p.slot === slot);
+  save.layout ??= {};
+  for (const p of all) save.layout[p.topic] ??= { room: p.room, slot: p.slot, at: now };
+  save.layout[topic] = { room, slot, at: now };
+  if (other) save.layout[other.topic] = { room: from.room, slot: from.slot, at: now };
+}
+
+// Back to automatic placement. The time stamp makes the reset win over older moves on other devices.
+export function resetLayout(save, now) {
+  save.layout = {};
+  save.layoutResetAt = now;
 }
 
 // The most overdue card of a topic that has not been answered today, for "Water this plant".

@@ -1,6 +1,6 @@
 # Freakbot's Conservatory: design doc
 
-Version 2.1 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4; 1.9: the Archive has its own architecture, 5.7; 2.0: interface materials, live window, tap reactions, pixel widget; 2.1: Phase 3, sections 5.5 to 5.7)
+Version 2.2 · 9 Nov 2026 · owner: Felix (1.1: cards are written at summary time, section 7; 1.2: Phase 1 decisions in sections 3, 4.3, 5.4, 5.5, 6.4, 6.5, 9; 1.3: ship room restyle in section 4, key-point grading, Friday task moved up; 1.4: full ship redesign, sections 3 and 4; 1.5: white interior, rooms and travel, sections 4.2, 5.1, 5.7, 9; 1.6: signage interface and shared palette, sections 3, 4.4, 4.5; 1.7: Android app, section 6.7; 1.8: phone reminders, Phase 2 details in 5.1, 5.3, 5.7, 6.4; 1.9: the Archive has its own architecture, 5.7; 2.0: interface materials, live window, tap reactions, pixel widget; 2.1: Phase 3, sections 5.5 to 5.7; 2.2: moving plants, sections 5.1 and 6.4)
 
 A study app for PhD reading. You answer a few questions a day about papers you have read; right answers water a small conservatory of plants, one plant per research topic. Freakbot, a salvaged pixel robot who survived the apocalypse, lives there, tends the plants and talks to you. It is an installable web app (PWA) hosted on GitHub Pages and used mostly on a Samsung phone.
 
@@ -140,7 +140,8 @@ Thirsty: leaves to dry olive, 1 px droop, pale cracked soil. Wilted: stronger dr
 - A topic is a note in the vault's `Topics/` folder. A paper belongs to a topic through its `topics` frontmatter.
 - A topic gets a plant once it has at least one paper with a summary and at least one question.
 - Species are assigned in `data/plants.json` (topic → species). Default for topics not listed: order of first appearance, cycling through species. Felix can edit the file. Slots are not stored: they follow from each plant's stage.
-- Capacity: 12 visible plants per room (6 rack, 4 floor, 2 hanging). Seeds, sprouts and saplings sit on the rack; bloom and fruit move to floor pots or hanging baskets. A plant spills into the other group when its own is full. Each room holds 12 plants, filled in order of first appearance. When a room is full the next one opens (section 5.7).
+- Capacity: 12 visible plants per room (6 rack, 4 floor, 2 hanging). Seeds, sprouts and saplings sit on the rack; bloom and fruit move to floor pots or hanging baskets. A plant spills into the other group when its own is full.
+- Felix can move plants: tap a plant, then another plant (they swap) or an empty spot, in any open room. Only the 12 drawn spots per room exist; there is no free placement. The first move pins every plant where it stands, so from then on plants stay put as they grow and new plants take the first free spot. "Auto-arrange plants" in Settings goes back to automatic placement. Each room holds 12 plants, filled in order of first appearance. When a room is full the next one opens (section 5.7).
 
 ### 5.2 Stage from mastery
 For each topic, over its questions' latest grades: `answered` = number answered at least once; `mastery` = (got + 0.5 × partial) / answered.
@@ -231,10 +232,12 @@ Felix accepted that questions are public (they summarize published papers).
   "responses": { "<card id>": { "grade": "got|partial|missed", "at": "ISO", "day": "YYYY-MM-DD", "choice": 0, "points": [0, 2], "text": "...", "reviewed": "note" } },
   "days": { "YYYY-MM-DD": { "cards": ["<card id>"], "extra": ["<card id>"], "done": true, "frozen": false, "water": 26, "at": "ISO" } },
   "peaks": { "<topic>": 2 },
+  "layout": { "<topic>": { "room": 0, "slot": 3, "at": "ISO" } },
+  "layoutResetAt": "ISO",
   "profile": { "streak": 0, "best": 0, "freezes": 0, "water": 0, "daysDone": 0, "lastDay": null, "unlocked": [] }
 }
 ```
-`extra` holds cards asked through "Water this plant": they earn water but never affect whether the day is done. `peaks` is the highest stage each topic has reached and merges by maximum. `points` lists the key points tapped. `reviewed` is set by the Friday review when it lowers a grade, with `at` bumped so the change wins the merge. Keep only the latest response per card in `responses`; append history to `history/<YYYY-MM>.jsonl` if needed later.
+`extra` holds cards asked through "Water this plant": they earn water but never affect whether the day is done. `peaks` is the highest stage each topic has reached and merges by maximum. `layout` holds placed plants and merges by the newer `at` per topic; placements older than `layoutResetAt` are dropped. `points` lists the key points tapped. `reviewed` is set by the Friday review when it lowers a grade, with `at` bumped so the change wins the merge. Keep only the latest response per card in `responses`; append history to `history/<YYYY-MM>.jsonl` if needed later.
 
 ### 6.5 Sync
 - Writes go to localStorage first (works offline), then to GitHub through the Contents API (`PUT /repos/{owner}/freakbot-garden-save/contents/save.json` with the file `sha`).

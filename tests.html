@@ -3,7 +3,7 @@
 <title>Freakbot tests</title>
 <pre id="out">running</pre>
 <script type="module">
-import { addDays, addExtraCard, applyMilestones, chaptersUnlocked, locationIndex, reachedMilestones, weekStart, weeklyResults, buildPlants, emptySave, ensureDay, gradeCard, gradeFromPoints, layoutRooms, mergeSaves, pickDaily, pickForTopic, recompute, stable, stageFor, thirstFor, timeBand, topicStats, updatePeaks } from './js/rules.js';
+import { addDays, addExtraCard, movePlant, resetLayout, applyMilestones, chaptersUnlocked, locationIndex, reachedMilestones, weekStart, weeklyResults, buildPlants, emptySave, ensureDay, gradeCard, gradeFromPoints, layoutRooms, mergeSaves, pickDaily, pickForTopic, recompute, stable, stageFor, thirstFor, timeBand, topicStats, updatePeaks } from './js/rules.js';
 import { createStore } from './js/store.js';
 
 const results = [];
@@ -212,6 +212,44 @@ await test('12 plants per room, young on the rack, grown on the floor, overflow 
   eq(rooms[0].slice(0, 9).map((p) => p.slot), [0, 1, 2, 3, 4, 5, 6, 7, 8]);
   eq(new Set(rooms[0].map((p) => p.slot)).size, 12);
   eq(layoutRooms([plant(4)], 2)[0][0].slot, 6);
+});
+
+const named = (n, stage = 0) => Array.from({ length: n }, (_, i) => ({ topic: `t${i}`, stage }));
+const spotOf = (rooms, topic) => { const p = rooms.flat().find((x) => x.topic === topic); return [p.room, p.slot]; };
+
+await test('moving to an empty spot keeps every other plant where it was', () => {
+  const s = emptySave();
+  const before = layoutRooms(named(16), 2, s.layout);
+  movePlant(s, before, 't0', 1, 9, 'n1');
+  const after = layoutRooms(named(16), 2, s.layout);
+  eq(spotOf(after, 't0'), [1, 9]);
+  eq(after.flat().filter((p) => p.topic !== 't0').map((p) => spotOf(after, p.topic)), before.flat().filter((p) => p.topic !== 't0').map((p) => spotOf(before, p.topic)));
+});
+
+await test('moving onto a plant swaps the two, and a placed plant stays when it grows', () => {
+  const s = emptySave();
+  const before = layoutRooms(named(16), 2, s.layout);
+  const [a, b] = [spotOf(before, 't1'), spotOf(before, 't14')];
+  movePlant(s, before, 't1', b[0], b[1], 'n1');
+  const grown = named(16).map((p) => ({ ...p, stage: 4 }));
+  const after = layoutRooms(grown, 2, s.layout);
+  eq([spotOf(after, 't1'), spotOf(after, 't14')], [b, a]);
+});
+
+await test('a bad or clashing placement falls back to an automatic spot', () => {
+  const rooms = layoutRooms(named(3), 2, { t0: { room: 5, slot: 0 }, t1: { room: 0, slot: 4 }, t2: { room: 0, slot: 4 } });
+  eq([spotOf(rooms, 't1'), rooms.flat().length, new Set(rooms.flat().map((p) => p.slot)).size], [[0, 4], 3, 3]);
+});
+
+await test('placements merge by newest, and a reset clears older ones everywhere', () => {
+  const a = emptySave();
+  const b = emptySave();
+  a.layout = { x: { room: 0, slot: 1, at: '2026-11-10T01:00:00Z' }, y: { room: 0, slot: 2, at: '2026-11-10T01:00:00Z' } };
+  b.layout = { x: { room: 1, slot: 3, at: '2026-11-10T02:00:00Z' } };
+  eq(mergeSaves(a, b, '2026-11-10').layout.x.room, 1);
+  resetLayout(b, '2026-11-10T03:00:00Z');
+  b.layout.z = { room: 0, slot: 5, at: '2026-11-10T04:00:00Z' };
+  eq(Object.keys(mergeSaves(a, b, '2026-11-10').layout), ['z']);
 });
 
 await test('plants past the last room stay out of the rooms', () => {

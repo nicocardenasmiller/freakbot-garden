@@ -30,4 +30,6 @@ export function pokeLine(asleep, fedUp) {
   return pick(POKED);
 }
 
+export const moveLine = (topic, moved) => (moved ? `listo. ${topicName(topic)} se mudo.` : `donde pongo ${topicName(topic)}, pana?`);
+
 export const waterLine = (topic, grade, grew) => (grew ? pick(GREW, topic) : pick(grade === 'missed' ? MISSED : WATERED, topic));

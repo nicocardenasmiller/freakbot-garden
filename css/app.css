@@ -286,3 +286,10 @@ body { background: var(--ink) var(--plate) 0 0 / 384px 384px; }
 /* Lists run down to the tabs instead of stopping above an empty button slot. */
 body[data-tab='herbarium'] #action:empty, body[data-tab='journal'] #action:empty { display: none; }
 .herbarium, .journal { overscroll-behavior: contain; padding-bottom: 28px; }
+
+.plant { pointer-events: none; }
+.plant-hit { position: absolute; left: 30px; top: 92px; width: 44px; height: 40px; pointer-events: auto; }
+.plant-hit.picked { box-shadow: 0 0 0 4px #E0A92E; animation: pick 600ms steps(1) infinite; }
+.spot { position: absolute; z-index: 144; width: 44px; height: 40px; background: rgba(224, 169, 46, 0.3); box-shadow: inset 0 0 0 4px #E0A92E; }
+@keyframes pick { 50% { box-shadow: 0 0 0 4px #F8F7F2; } }
+@media (prefers-reduced-motion: reduce) { .plant-hit.picked { animation: none; } }

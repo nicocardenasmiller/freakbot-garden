@@ -39,7 +39,7 @@ const ctx = {
 };
 
 function gardenNow() {
-  return layoutRooms(buildPlants(deck.list, deck.appearance, deck.chosen, store.save, today()), ROOMS.length);
+  return layoutRooms(buildPlants(deck.list, deck.appearance, deck.chosen, store.save, today()), ROOMS.length, store.save.layout ?? {});
 }
 
 const VIEWS = {

@@ -1,5 +1,6 @@
 import { h } from './dom.js';
 import { setSound, soundOn } from './sound.js';
+import { resetLayout } from './rules.js';
 
 export const STATUS_TEXT = {
   missing: 'Not syncing: no token on this device.',
@@ -52,6 +53,17 @@ export function openSettings(store) {
         },
       },
       soundLabel(),
+    ),
+    h(
+      'button',
+      {
+        class: 'quiet sound-toggle',
+        onclick: (e) => {
+          store.commit((save, now) => resetLayout(save, now));
+          e.currentTarget.textContent = 'Plants auto-arranged';
+        },
+      },
+      'Auto-arrange plants',
     ),
     h('p', { class: 'hint' }, 'A fine-grained GitHub token with Contents read and write on freakbot-garden-save only. It stays on this device.'),
     status,

@@ -1,6 +1,6 @@
 import { h } from './dom.js';
-import { SPECIES } from './rules.js';
-import { greetingFor, pokeLine, waterLine } from './lines.js';
+import { SPECIES, movePlant } from './rules.js';
+import { greetingFor, moveLine, pokeLine, topicName, waterLine } from './lines.js';
 import { startWindow } from './windowfx.js';
 import { play } from './sound.js';
 
@@ -183,10 +183,61 @@ function roomNav(ctx, roomCount) {
   };
 }
 
+// Tap a plant, then tap another plant or an empty spot, in any room, to move it.
+let picked = null;
+let say = null;
+
+function setupMoving(ctx, scene, plantEls, plants, rooms) {
+  if (picked && !rooms.flat().some((p) => p.topic === picked)) picked = null;
+  const place = (slot) => {
+    const topic = picked;
+    picked = null;
+    ctx.store.commit((save, now) => movePlant(save, rooms, topic, ctx.room, slot, now));
+    say = moveLine(topic, true);
+    ctx.refresh();
+  };
+  for (const plant of plants) {
+    const hit = h('button', {
+      class: `plant-hit${plant.topic === picked ? ' picked' : ''}`,
+      'aria-label': `Move ${topicName(plant.topic)}`,
+      onclick: (e) => {
+        e.stopPropagation();
+        if (picked === plant.topic) {
+          picked = null;
+        } else if (picked) {
+          place(plant.slot);
+          return;
+        } else {
+          picked = plant.topic;
+          say = moveLine(plant.topic, false);
+        }
+        ctx.refresh();
+      },
+    });
+    plantEls.get(plant.topic).append(hit);
+  }
+  if (!picked) return;
+  const used = new Set(plants.map((p) => p.slot));
+  ROOMS[ctx.room].slots.forEach(([x, y], slot) => {
+    if (used.has(slot)) return;
+    const spot = h('button', { class: 'spot', 'aria-label': 'Empty spot', onclick: (e) => { e.stopPropagation(); place(slot); } });
+    spot.style.left = `${x * SCALE + 30}px`;
+    spot.style.top = `${y * SCALE + 92}px`;
+    scene.append(spot);
+  });
+  // A tap on empty floor cancels. Changing rooms keeps the plant in hand.
+  scene.addEventListener('click', (e) => {
+    if (e.target.closest('.room-nav')) return;
+    picked = null;
+    ctx.refresh();
+  });
+}
+
 export function renderGarden(ctx) {
   const rooms = ctx.gardenNow();
   ctx.room = Math.min(ctx.room, Math.max(0, rooms.length - 1));
-  const { scene, bot, band } = buildScene(ctx, rooms[ctx.room] ?? [], ctx.room);
+  const { scene, bot, band, plantEls } = buildScene(ctx, rooms[ctx.room] ?? [], ctx.room);
+  setupMoving(ctx, scene, plantEls, rooms[ctx.room] ?? [], rooms);
   bot.classList.add('pokeable');
   bot.dataset.base = bot.querySelector('.rest').src;
   idleLife(bot, band);
@@ -219,6 +270,8 @@ export function renderGarden(ctx) {
     else if (!greeted) showSlip(scene, greetingFor(rooms.flat()));
     greeted = true;
   }
+  if (say) showSlip(scene, say);
+  say = null;
   const done = ctx.todayEntry()?.done;
   return {
     el: stage,
