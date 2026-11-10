@@ -19,7 +19,7 @@ export const ROOMS = [
     id: 'bay',
     label: 'Hydroponics bay',
     art: (band) => `art/out/f_${band}_bg.png`,
-    slots: [[64, 50], [76, 50], [64, 60], [76, 60], [64, 70], [76, 70], [1, 93], [71, 105], [17, 107], [29, 83], [24, 0], [46, 0]],
+    slots: [[62, 48], [75, 48], [62, 61], [75, 61], [62, 74], [75, 74], [1, 93], [71, 105], [17, 107], [29, 83], [24, 0], [46, 0]],
   },
   {
     id: 'archive',
@@ -221,8 +221,8 @@ function setupMoving(ctx, scene, plantEls, plants, rooms) {
   ROOMS[ctx.room].slots.forEach(([x, y], slot) => {
     if (used.has(slot)) return;
     const spot = h('button', { class: 'spot', 'aria-label': 'Empty spot', onclick: (e) => { e.stopPropagation(); place(slot); } });
-    spot.style.left = `${x * SCALE + 30}px`;
-    spot.style.top = `${y * SCALE + 92}px`;
+    spot.style.left = `${x * SCALE + 26}px`;
+    spot.style.top = `${y * SCALE + 84}px`;
     scene.append(spot);
   });
   // A tap on empty floor cancels. Changing rooms keeps the plant in hand.

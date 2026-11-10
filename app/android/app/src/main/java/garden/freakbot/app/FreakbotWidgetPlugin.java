@@ -1,6 +1,7 @@
 package garden.freakbot.app;
 
 import android.content.Context;
+import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -9,6 +10,18 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 /** The web app calls this whenever the streak changes, so the widget never needs the sync token. */
 @CapacitorPlugin(name = "FreakbotWidget")
 public class FreakbotWidgetPlugin extends Plugin {
+    @PluginMethod
+    public void info(PluginCall call) {
+        JSObject result = new JSObject();
+        try {
+            Context context = getContext();
+            result.put("version", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName);
+            call.resolve(result);
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            call.reject("version unavailable");
+        }
+    }
+
     @PluginMethod
     public void update(PluginCall call) {
         Context context = getContext();

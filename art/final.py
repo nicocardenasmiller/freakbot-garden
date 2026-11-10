@@ -243,14 +243,14 @@ def sign_on_gallery(s,word):
                 if bit=='1': s.px(x0+2+i*4+dx,56+dy,ROSE_LIGHT,lit=True)
 
 def rack(s):
-    # three-tier grow rack right, about twice Freakbot's height, with a side panel running back into the room
+    # three-tier grow rack right (two shelves and the base, 13 px apart so each plant is a finger-sized target), with a side panel running back into the room
     quad(s,[(70,66),(66,69),(66,98),(70,110)],sh(S1,.7))
     line(s,(66,69),(66,98),sh(S0,.7))
     line(s,(66,69),(70,66),S4)
     s.rect(70,66,27,44,DARK); s.rect(70,66,27,1,S0); s.rect(70,67,27,1,ICE,lit=True); s.rect(70,66,1,44,S0)
-    for y in (82,92,102):
+    for y in (80,93):
         s.rect(72,y,24,2,S3); s.rect(72,y,24,1,S4)
-    for y in (72,86,96): s.rect(73,y,22,1,ROSE,lit=True)
+    for y in (72,85,98): s.rect(73,y,22,1,ROSE,lit=True)
     s.rect(70,106,27,4,S2); s.rect(70,106,27,1,S4)
     for x in range(74,96,6): s.px(x,108,MINT,lit=True)
 

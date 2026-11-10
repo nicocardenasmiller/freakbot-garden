@@ -187,6 +187,7 @@ Stages can go down if mastery drops (the plant loses fruit, not its size: never 
 ### 6.1 Stack
 - Static site, no framework required (vanilla JS modules) or a small Vite + Preact build. Keep the bundle under 300 KB excluding art.
 - PWA: `manifest.webmanifest` (name "Freakbot", icon from the sprite, `display: standalone`, theme #D9DAD4) and a service worker that caches the shell, art and current cards for offline use.
+- The last loaded deck is kept in localStorage (`freakbot.deck`) so the garden draws at once on start; today's cards are still only picked after a fresh load and the first sync.
 - Hosting: GitHub Pages from the public repo, at `https://freakbot.nicolascardenasmiller.com/`.
 
 ### 6.2 Repos
@@ -248,6 +249,7 @@ Felix accepted that questions are public (they summarize published papers).
 - `app/` is a Capacitor shell (id `garden.freakbot.app`) that loads the live site, so web changes reach the phone without a reinstall. Only native changes need a new APK.
 - It adds a daily 19:35 reminder that only fires when today's cards are not done (a day finished on the Mac counts once the phone app has opened), and a home-screen streak widget drawn as pixel art on a 2 dp grid, shaped like a small viewport: the sky and planet for the time of day, Freakbot in a mood that follows the day beside your strongest plant, a water drop and big streak count (gold from 30 days), the last 7 days as squares, and a status in Spanish. The web app pushes `streak`, `freezes`, `lastDay` and `doneDay` to the native `FreakbotWidget` plugin whenever they change (`js/app.js → pushWidget`), so the widget never holds the sync token. The widget applies missed days itself, using the rule in 5.5.
 - Hardened: no app data backup, no WebView or app debugging, and only the internet, notification and boot permissions.
+- Settings shows the installed app version (from 1.5), since native changes only arrive with a new APK.
 - Installed directly on the phone, not through the Play Store. Build with `cd app/android && ./gradlew assembleDebug`.
 - The Mac keeps using the website.
 

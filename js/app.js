@@ -145,25 +145,53 @@ async function fetchJson(url) {
   return res.json();
 }
 
+const DECK_KEY = 'freakbot.deck';
+
+function applyDeck(data) {
+  deck.chosen = data.chosen;
+  deck.lore = data.lore;
+  deck.milestones = data.milestones;
+  deck.locations = data.locations;
+  const byId = new Map();
+  for (const set of data.sets) {
+    for (const card of set.cards) {
+      if (!byId.has(card.id)) byId.set(card.id, card);
+    }
+  }
+  deck.byId = byId;
+  deck.list = [...byId.values()];
+  deck.appearance = [...new Set([...data.sets].reverse().flatMap((set) => set.cards.flatMap((card) => card.topics ?? [])))];
+}
+
+// The last deck this device saw, so the garden can draw at once. Today's cards still wait for a fresh load.
+function loadSavedDeck() {
+  try {
+    const data = JSON.parse(localStorage.getItem(DECK_KEY));
+    if (Array.isArray(data?.sets)) applyDeck(data);
+  } catch {
+    // The network load below fills it in.
+  }
+}
+
 async function loadDeck() {
   try {
-    deck.chosen = await fetchJson('data/plants.json').catch(() => ({}));
-    deck.lore = await fetchJson('data/lore.json').catch(() => []);
-    deck.milestones = await fetchJson('data/milestones.json').catch(() => []);
-    deck.locations = await fetchJson('data/locations.json').catch(() => []);
-    const { files } = await fetchJson('data/cards/index.json');
-    const ordered = [...files].sort((a, b) => fileRank(b).localeCompare(fileRank(a)));
+    const [chosen, lore, milestones, locations, index] = await Promise.all([
+      fetchJson('data/plants.json').catch(() => ({})),
+      fetchJson('data/lore.json').catch(() => []),
+      fetchJson('data/milestones.json').catch(() => []),
+      fetchJson('data/locations.json').catch(() => []),
+      fetchJson('data/cards/index.json'),
+    ]);
+    const ordered = [...index.files].sort((a, b) => fileRank(b).localeCompare(fileRank(a)));
     const sets = await Promise.all(ordered.map((f) => fetchJson(`data/cards/${f}`)));
-    const byId = new Map();
-    for (const set of sets) {
-      for (const card of set.cards) {
-        if (!byId.has(card.id)) byId.set(card.id, card);
-      }
-    }
-    deck.byId = byId;
-    deck.list = [...byId.values()];
-    deck.appearance = [...new Set([...sets].reverse().flatMap((set) => set.cards.flatMap((card) => card.topics ?? [])))];
+    const data = { chosen, lore, milestones, locations, sets };
+    applyDeck(data);
     deck.complete = true;
+    try {
+      localStorage.setItem(DECK_KEY, JSON.stringify(data));
+    } catch {
+      // Next start is just slower.
+    }
   } catch {
     deck.complete = false;
   }
@@ -175,10 +203,12 @@ async function boot() {
   store.subscribe(paintStrip);
   store.subscribe(pushWidget);
 
+  loadSavedDeck();
   tick();
   paintStrip();
 
   await loadDeck();
+  render();
   // Pull first so a second device picks up the day the first one already started.
   await Promise.race([store.sync(), new Promise((resolve) => setTimeout(resolve, FIRST_SYNC_WAIT_MS))]);
   prepareToday();

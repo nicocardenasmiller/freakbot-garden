@@ -29,6 +29,14 @@ export function openSettings(store) {
     placeholder: store.hasToken ? 'token saved on this device' : 'paste token',
   });
 
+  // Only the Android app has this. Builds before 1.5 cannot report their version.
+  const version = h('p', { class: 'smallcaps app-version' });
+  const native = window.Capacitor?.Plugins?.FreakbotWidget;
+  if (native) {
+    version.textContent = 'Android app: older than 1.5';
+    native.info().then((r) => { version.textContent = `Android app ${r.version}`; }).catch(() => {});
+  }
+
   const close = () => dialog.close();
   const save = () => {
     if (input.value.trim()) store.setToken(input.value);
@@ -65,6 +73,7 @@ export function openSettings(store) {
       },
       'Auto-arrange plants',
     ),
+    version,
     h('p', { class: 'hint' }, 'A fine-grained GitHub token with Contents read and write on freakbot-garden-save only. It stays on this device.'),
     status,
     h(
