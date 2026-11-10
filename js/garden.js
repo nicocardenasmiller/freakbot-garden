@@ -87,11 +87,15 @@ function buildScene(ctx, plants, roomIndex) {
   return { scene, bot, can, band, plantEls };
 }
 
-function showSlip(scene, text) {
+// What he is saying survives a redraw of the scene, until its time is up or it is tapped away.
+let lastSlip = null;
+
+function showSlip(scene, text, until = Date.now() + 6000) {
   scene.querySelector('.slip')?.remove();
-  const slip = h('button', { class: 'slip', onclick: (e) => { e.stopPropagation(); slip.remove(); } }, text);
+  lastSlip = { text, until };
+  const slip = h('button', { class: 'slip', onclick: (e) => { e.stopPropagation(); lastSlip = null; slip.remove(); } }, text);
   scene.append(slip);
-  setTimeout(() => slip.remove(), 6000);
+  setTimeout(() => slip.remove(), until - Date.now());
 }
 
 // Freakbot reacts when tapped. Every move is stepped on the art's 4 px grid.
@@ -321,6 +325,7 @@ export function renderGarden(ctx) {
   }
   if (say) showSlip(scene, say);
   say = null;
+  if (!scene.querySelector('.slip') && lastSlip && Date.now() < lastSlip.until) showSlip(scene, lastSlip.text, lastSlip.until);
   const done = ctx.todayEntry()?.done;
   return {
     el: stage,
