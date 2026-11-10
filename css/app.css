@@ -282,3 +282,7 @@ body { background: var(--ink) var(--plate) 0 0 / 384px 384px; }
 .week-row { display: grid; gap: 2px; padding: 8px 0; border-top: 4px solid var(--lo); }
 .week-row .smallcaps { color: var(--text); }
 .week-stats { font-size: 15px; font-weight: 400; color: var(--text-muted); }
+
+/* Lists run down to the tabs instead of stopping above an empty button slot. */
+body[data-tab='herbarium'] #action:empty, body[data-tab='journal'] #action:empty { display: none; }
+.herbarium, .journal { overscroll-behavior: contain; padding-bottom: 28px; }

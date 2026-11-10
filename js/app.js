@@ -1,5 +1,5 @@
 import { h } from './dom.js';
-import { addDays, applyMilestones, buildPlants, ensureDay, layoutRooms, locationIndex, localDay, recompute, timeBand, updatePeaks } from './rules.js';
+import { SPECIES, addDays, applyMilestones, buildPlants, ensureDay, layoutRooms, locationIndex, localDay, recompute, timeBand, updatePeaks } from './rules.js';
 import { createStore } from './store.js';
 import { renderCards } from './cards.js';
 import { ROOMS, playWater, renderGarden } from './garden.js';
@@ -60,12 +60,16 @@ function pushWidget() {
       return entry?.done ? '1' : entry?.frozen ? 'f' : '0';
     })
     .join('');
-  widget.update({ streak, freezes, lastDay: lastDay ?? '', doneDay: ctx.todayEntry()?.done ? today() : '', week, weekEnd: today() }).catch(() => {});
+  // The widget shows the strongest plant, drooping if it is thirsty.
+  const best = ctx.allPlants().reduce((top, p) => (!top || p.stage > top.stage ? p : top), null);
+  const plant = best ? { plantSpecies: SPECIES.indexOf(best.species), plantColumn: best.stage + best.thirst * 5 } : {};
+  widget.update({ streak, freezes, lastDay: lastDay ?? '', doneDay: ctx.todayEntry()?.done ? today() : '', week, weekEnd: today(), ...plant }).catch(() => {});
 }
 
 let tab = 'garden';
 
 function render() {
+  document.body.dataset.tab = tab;
   const { el, action } = VIEWS[tab]();
   $('#view').replaceChildren(el);
   $('#action').replaceChildren(...(action ? [action] : []));

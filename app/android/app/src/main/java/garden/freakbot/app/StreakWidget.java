@@ -92,6 +92,17 @@ public class StreakWidget extends AppWidgetProvider {
         return views;
     }
 
+    private static final String[][] SKIES = {
+        {"#0E1430", "#182048", "#2A2F5E", "#27406A", "#3F6E8E", "#7FB0B8", "#FFE9B8"},
+        {"#070A18", "#0A0E22", "#101636", "#1E5A8A", "#3A8AB8", "#A8DCF0", "#DDF2FF"},
+        {"#1A1030", "#2E1638", "#4A1C40", "#5E2E3A", "#B0603A", "#E8A050", "#FFD27A"},
+        {"#05060F", "#070A18", "#0A0E22", "#0E1428", "#141C36", "#1E2A4A", "#4FA0C8"},
+    };
+    private static final int[][] STARS = {{8, 6}, {21, 4}, {33, 9}, {46, 5}, {58, 8}, {70, 4}, {79, 11}, {14, 13}, {40, 15}, {64, 16}};
+    private static final String[] BIG_DROP = {
+        "....#....", "....#....", "...###...", "..#####..", ".#######.", ".#######.", "#########", "#########", "#########", ".#######.", "..#####..",
+    };
+
     private static Bitmap draw(Context context, int w, int h) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String today = dayFormat().format(new Date());
@@ -101,79 +112,150 @@ public class StreakWidget extends AppWidgetProvider {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         boolean night = hour >= 21 || hour < 5;
         boolean lost = streak == 0 && !prefs.getString("lastDay", "").isEmpty();
+        int band = night ? 3 : hour < 11 ? 0 : hour < 17 ? 1 : 2;
 
+        int white = Color.parseColor("#F8F7F2");
+        int alarm = Color.parseColor("#FF7A5C");
+        int gold = Color.parseColor("#F4C25E");
         String status = "HOY REGAR";
-        int statusColor = MUTED;
+        int statusColor = white;
         int frame = R.drawable.widget_fbo;
         if (!known) {
             status = "ABRE APP";
         } else if (done && night) {
             status = "A DORMIR";
-            statusColor = BLUE;
+            statusColor = gold;
             frame = R.drawable.widget_fbn;
         } else if (done) {
             status = "REGADO";
-            statusColor = BLUE;
+            statusColor = gold;
             frame = R.drawable.widget_fbw;
         } else if (lost) {
             status = "DE NUEVO";
             frame = R.drawable.widget_fbb;
         } else if (hour >= 18 && streak > 0) {
             status = "EN PELIGRO";
-            statusColor = RED;
+            statusColor = alarm;
         }
 
         Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                b.setPixel(x, y, BAYER[y % 4][x % 4] > 11 ? HULL_DARK : HULL);
-            }
-        }
-        rect(b, 0, 0, w, 1, INK);
-        rect(b, 0, h - 1, w, 1, INK);
-        rect(b, 0, 0, 1, h, INK);
-        rect(b, w - 1, 0, 1, h, INK);
-        rect(b, 1, 1, w - 2, 1, LIGHT);
-        rect(b, 1, 1, 2, h - 2, RED);
-        b.setPixel(w - 3, 3, MUTED);
-        b.setPixel(w - 3, h - 4, MUTED);
-        for (int[] corner : new int[][] {{0, 0}, {w - 1, 0}, {0, h - 1}, {w - 1, h - 1}}) {
-            b.setPixel(corner[0], corner[1], Color.TRANSPARENT);
-        }
+        drawSky(b, w, h, SKIES[band], band);
 
         int ox = (w - BASE_W) / 2;
         int oy = (h - BASE_H) / 2;
-        sprite(context, b, frame, ox + 3, oy + 3);
+        // deck under the crew
+        int deck = oy + BASE_H - 4;
+        rect(b, 0, deck, w, h - deck, HULL_DARK);
+        rect(b, 0, deck, w, 1, LIGHT);
+        for (int x = 3; x < w - 2; x += 6) b.setPixel(x, deck + 1, MUTED);
 
-        int rx = ox + 37;
-        text(b, "RACHA", rx, oy + 3, MUTED, 1);
-        int dropColor = streak >= 30 ? YELLOW : statusColor == RED ? RED : BLUE;
-        for (int y = 0; y < DROP.length; y++) {
-            for (int x = 0; x < DROP[y].length(); x++) {
-                if (DROP[y].charAt(x) != '#') continue;
-                boolean edge = y == 0 || y == DROP.length - 1 || x == 0 || x == 6 || DROP[y - 1].charAt(x) != '#' || DROP[y + 1].charAt(x) != '#' || DROP[y].charAt(x - 1) != '#' || DROP[y].charAt(x + 1) != '#';
-                if (done || edge) b.setPixel(rx + x, oy + 11 + y, dropColor);
+        plant(context, b, prefs, ox + 1, deck - 29);
+        sprite(context, b, frame, ox + 11, deck - 29);
+
+        int rx = ox + 44;
+        shadowText(b, status, rx, oy + 4, statusColor, 1);
+        int dropColor = statusColor == alarm ? alarm : streak >= 30 ? gold : Color.parseColor("#6FB8F0");
+        for (int y = 0; y < BIG_DROP.length; y++) {
+            for (int x = 0; x < 9; x++) {
+                if (BIG_DROP[y].charAt(x) != '#') continue;
+                boolean edge = x == 0 || x == 8 || y == BIG_DROP.length - 1 || BIG_DROP[y].charAt(x - 1) != '#' || BIG_DROP[y].charAt(x + 1) != '#' || (y > 0 && BIG_DROP[y - 1].charAt(x) != '#');
+                if (done || edge) b.setPixel(rx + x, oy + 12 + y, dropColor);
             }
         }
-        if (done) b.setPixel(rx + 2, oy + 14, LIGHT);
-        text(b, String.valueOf(streak), rx + 10, oy + 9, INK, streak < 100 ? 3 : 2);
+        if (done) {
+            rect(b, rx + 2, oy + 18, 1, 2, white);
+            b.setPixel(rx + 3, oy + 17, white);
+        }
+        int size = streak < 10 ? 4 : streak < 100 ? 3 : 2;
+        shadowText(b, String.valueOf(streak), rx + 12, oy + 11 + (size == 4 ? 0 : size == 3 ? 3 : 5), white, size);
 
         String week = shiftedWeek(prefs, today);
         for (int i = 0; i < 7; i++) {
-            int x = rx + i * 6;
-            int y = oy + 26;
+            int x = rx + i * 5;
+            int y = oy + 27;
             char day = week.charAt(i);
-            if (day == '1') {
-                rect(b, x, y, 5, 5, BLUE);
-            } else if (day == 'f') {
-                rect(b, x, y, 5, 5, ICE);
-            } else {
-                outline(b, x, y, LINE);
+            rect(b, x, y, 4, 4, day == '1' ? gold : day == 'f' ? ICE : Color.parseColor("#4A5478"));
+            if (day == '1') b.setPixel(x, y, white);
+            if (i == 6 && day != '1') {
+                rect(b, x, y, 4, 1, white);
+                rect(b, x, y + 3, 4, 1, white);
+                rect(b, x, y, 1, 4, white);
+                rect(b, x + 3, y, 1, 4, white);
             }
-            if (i == 6) outline(b, x, y, INK);
         }
-        text(b, status, rx, oy + 33, statusColor, 1);
+        frameHull(b, w, h);
         return b;
+    }
+
+    private static void drawSky(Bitmap b, int w, int h, String[] sky, int band) {
+        int[] colors = new int[sky.length];
+        for (int i = 0; i < sky.length; i++) colors[i] = Color.parseColor(sky[i]);
+        for (int y = 0; y < h; y++) {
+            int step = Math.min(2, y * 3 / Math.max(1, h));
+            for (int x = 0; x < w; x++) b.setPixel(x, y, colors[step]);
+        }
+        for (int[] star : STARS) {
+            if (star[0] * w / 85 < w && star[1] < h) b.setPixel(star[0] * w / 85, star[1], LIGHT);
+        }
+        int cx = w * 3 / 4;
+        int cy = h + 18;
+        int radius = 44;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                double d = Math.hypot(x - cx, y - cy);
+                if (d > radius) continue;
+                double light = Math.hypot(x - (cx - 22), y - (cy - 36));
+                int shade = light < 26 ? 5 : light < 42 ? 4 : 3;
+                b.setPixel(x, y, colors[d > radius - 1.2 ? 6 : shade]);
+            }
+        }
+    }
+
+    private static void plant(Context context, Bitmap b, SharedPreferences prefs, int x, int y) {
+        int species = prefs.getInt("plantSpecies", -1);
+        if (species < 0) return;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        Bitmap sheet = BitmapFactory.decodeResource(context.getResources(), R.drawable.widget_plants, options);
+        int col = Math.max(0, Math.min(14, prefs.getInt("plantColumn", 0)));
+        for (int yy = 0; yy < 34; yy++) {
+            for (int xx = 0; xx < 26; xx++) {
+                int color = sheet.getPixel(col * 26 + xx, species * 34 + yy);
+                if (Color.alpha(color) > 0 && x + xx >= 0 && x + xx < b.getWidth() && y + yy >= 0 && y + yy < b.getHeight()) b.setPixel(x + xx, y + yy, color);
+            }
+        }
+        // a small pot, level with the deck
+        rect(b, x + 9, y + 26, 9, 2, INK);
+        rect(b, x + 10, y + 28, 7, 2, Color.parseColor("#3A3E46"));
+        rect(b, x + 10, y + 28, 1, 2, Color.parseColor("#6C7078"));
+    }
+
+    private static void shadowText(Bitmap b, String word, int x, int y, int color, int size) {
+        text(b, word, x + Math.max(1, size / 2), y + Math.max(1, size / 2), INK, size);
+        text(b, word, x, y, color, size);
+    }
+
+    /** The widget is a little viewport: a hull frame with cut corners. */
+    private static void frameHull(Bitmap b, int w, int h) {
+        rect(b, 0, 0, w, 2, HULL);
+        rect(b, 0, h - 2, w, 2, HULL);
+        rect(b, 0, 0, 2, h, HULL);
+        rect(b, w - 2, 0, 2, h, HULL);
+        rect(b, 0, 0, w, 1, LIGHT);
+        rect(b, 0, 0, 1, h, LIGHT);
+        rect(b, 2, 2, w - 4, 1, INK);
+        rect(b, 2, h - 3, w - 4, 1, INK);
+        rect(b, 2, 2, 1, h - 4, INK);
+        rect(b, w - 3, 2, 1, h - 4, INK);
+        for (int[] rivet : new int[][] {{5, 1}, {w - 6, 1}, {5, h - 2}, {w - 6, h - 2}}) b.setPixel(rivet[0], rivet[1], MUTED);
+        for (int k = 0; k < 3; k++) {
+            for (int j = 0; j < 3 - k; j++) {
+                b.setPixel(j, k, Color.TRANSPARENT);
+                b.setPixel(w - 1 - j, k, Color.TRANSPARENT);
+                b.setPixel(j, h - 1 - k, Color.TRANSPARENT);
+                b.setPixel(w - 1 - j, h - 1 - k, Color.TRANSPARENT);
+            }
+        }
     }
 
     private static String shiftedWeek(SharedPreferences prefs, String today) {
