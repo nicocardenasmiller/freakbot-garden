@@ -1,0 +1,307 @@
+{
+  "week": "2026-11-13",
+  "generatedAt": "2026-11-13T13:13:42-05:00",
+  "pool": 94,
+  "cards": [
+    {
+      "id": "2026-11-13__q01",
+      "kind": "recall",
+      "format": "short",
+      "topics": [
+        "Trade",
+        "FDI",
+        "Firms_and_Business_Power"
+      ],
+      "citekeys": [
+        "helpmanTradeFDIOrganization2006"
+      ],
+      "paper": "Helpman (2006)",
+      "citation": "Helpman, E. 2006. \"Trade, FDI, and the Organization of Firms.\" Journal of Economic Literature 44(3).",
+      "prompt": "In the Antràs and Helpman model that Helpman (2006) surveys, how do firms in headquarter-intensive sectors sort across the four ways of getting inputs, and why couldn't this be tested at the time?",
+      "answer": "Integration is chosen in headquarter-intensive sectors because suppliers face a hold-up problem under incomplete contracts. Within them, the most productive firms integrate abroad (vertical FDI), then come firms that outsource abroad, then firms that integrate at home, and the least productive outsource at home. The four-way sorting could not be tested because firm-level data on input trade did not exist.",
+      "points": [
+        "Integration is chosen in headquarter-intensive sectors because of hold-up under incomplete contracts.",
+        "Order by productivity: integrate abroad, outsource abroad, integrate at home, outsource at home.",
+        "It could not be tested because firm-level data on input trade did not exist."
+      ],
+      "explanation": "This is the incomplete-contracts half of the survey. Its first half, sorting into exporters and FDI, is the part that was well supported by data.",
+      "source": "zotero_library/helpmanTradeFDIOrganization2006.md · pp. 607-615, 627"
+    },
+    {
+      "id": "2026-11-13__q02",
+      "kind": "recall",
+      "format": "short",
+      "topics": [
+        "Taxation_and_Fiscal_Contract",
+        "Capital_Mobility_and_Policy_Autonomy",
+        "International_Institutions"
+      ],
+      "citekeys": [
+        "gelepithisPoliticsTaxingMultinational2022"
+      ],
+      "paper": "Gelepithis and Hearson (2022)",
+      "citation": "Gelepithis and Hearson. 2022. \"The Politics of Taxing Multinational Firms in a Digital Age.\" Journal of European Public Policy 29(5).",
+      "prompt": "Gelepithis and Hearson ask why states could reassert the power to tax mobile digital multinationals. What turned tax competition from a \"condition\" into a solvable problem, and why could states act alone?",
+      "answer": "Under taxation by physical presence, raising taxes alone risked capital flight, so tax competition was a condition, not a problem. Digitalization made it plausible that users create value, giving a fairness frame, and public-facing leaders (France first) took the issue out of the OECD tax community. Because consumer markets cannot move, market-based taxes like digital services taxes could be imposed unilaterally without fear of capital flight.",
+      "points": [
+        "Taxing by physical presence meant unilateral increases risked capital flight, so tax competition was a condition.",
+        "A fairness frame (users create value) and political leaders broadened the issue beyond the OECD tax experts.",
+        "Consumer markets cannot move, so market-based taxes like DSTs could be imposed unilaterally."
+      ],
+      "explanation": "The evidence is a process-tracing narrative from OECD and government documents. Power-based rivals, like large consumer markets or US interests, are not ruled out.",
+      "source": "zotero_library/gelepithisPoliticsTaxingMultinational2022.md · pp. 709-721"
+    },
+    {
+      "id": "2026-11-13__q03",
+      "kind": "recall",
+      "format": "mc",
+      "topics": [
+        "Firms_and_Business_Power",
+        "Trade",
+        "FDI"
+      ],
+      "citekeys": [
+        "gereffiGovernanceGlobalValue2005"
+      ],
+      "paper": "Gereffi et al. (2005)",
+      "citation": "Gereffi et al. 2005. \"The Governance of Global Value Chains.\" Review of International Political Economy 12(1).",
+      "prompt": "In Gereffi et al. (2005), which three variables decide whether a global value chain is market, modular, relational, captive or hierarchy?",
+      "options": [
+        "Asset specificity, frequency of transactions and uncertainty",
+        "Complexity of transactions, codifiability of information and supplier capability",
+        "Technology intensity, advertising intensity and global integration",
+        "Lead firm market power, tariff levels and the supplier country's institutions"
+      ],
+      "correct": 1,
+      "answer": "Complexity of transactions, whether the information can be codified, and how capable the suppliers are.",
+      "explanation": "Each variable is coded high or low, and the five types run from low to high explicit coordination and power asymmetry. The first option is classic transaction cost economics, and the third lists Kobrin's (1987) firm bargaining resources.",
+      "source": "zotero_library/gereffiGovernanceGlobalValue2005.md · pp. 84-87"
+    },
+    {
+      "id": "2026-11-13__q04",
+      "kind": "synthesis",
+      "format": "short",
+      "topics": [
+        "FDI",
+        "Capital_Mobility_and_Policy_Autonomy",
+        "Firms_and_Business_Power"
+      ],
+      "citekeys": [
+        "aguiarFireSaleForeignDirect2005",
+        "alquistFiresaleFDIBusiness2016"
+      ],
+      "paper": "Aguiar and Gopinath (2005) / Alquist et al. (2016)",
+      "citation": "Aguiar and Gopinath. 2005. \"Fire-Sale Foreign Direct Investment and Liquidity Crises.\" Review of Economics and Statistics 87(3). / Alquist et al. 2016. \"Fire-Sale FDI or Business as Usual?\" Journal of International Economics 98.",
+      "prompt": "Aguiar and Gopinath (2005) and Alquist et al. (2016) both study foreign acquisitions during emerging-market crises. What do they agree on, and where does Alquist et al. push back?",
+      "answer": "Both find that crises raise foreign acquisitions. Aguiar and Gopinath read this as fire sales: in the Asian crisis, cash-poor firms were more likely to be bought and sold more cheaply. Alquist et al. find that crisis-era foreign deals look like normal ones: no shift to cross-industry deals, no smaller stakes and no faster resale. So crisis M&A is business as usual, not a distinct type of FDI.",
+      "points": [
+        "Both find more foreign acquisitions in crises.",
+        "Aguiar and Gopinath: cash-poor firms are more likely to be bought, and more cheaply (fire sales).",
+        "Alquist et al.: crisis deals look like normal ones in industry match, stake size and resale."
+      ],
+      "explanation": "Alquist et al. build on Aguiar and Gopinath's model. Neither paper studies greenfield entry or measures acquirer productivity.",
+      "source": "zotero_library/aguiarFireSaleForeignDirect2005.md · pp. 439-449; zotero_library/alquistFiresaleFDIBusiness2016.md · pp. 93-95"
+    },
+    {
+      "id": "2026-11-13__q05",
+      "kind": "synthesis",
+      "format": "mc",
+      "topics": [
+        "FDI",
+        "International_Institutions",
+        "Trade",
+        "Democratization_and_Regimes"
+      ],
+      "citekeys": [
+        "buthePoliticsForeignDirect2008",
+        "jensenDemocraticGovernanceMultinational2003"
+      ],
+      "paper": "Büthe and Milner (2008) / Jensen (2003)",
+      "citation": "Büthe and Milner. 2008. \"The Politics of Foreign Direct Investment into Developing Countries: Increasing FDI through International Trade Agreements?\" AJPS 52(4). / Jensen, N. 2003. \"Democratic Governance and Multinational Corporations.\" International Organization 57(3).",
+      "prompt": "What does Büthe and Milner's (2008) analysis imply for Jensen's (2003) claim that democracies attract more FDI?",
+      "options": [
+        "It confirms the democracy effect but shows it works only through audience costs",
+        "It shows FDI causes democratization, so Jensen has the arrow backward",
+        "Once political constraints (veto players) are controlled, democracy measures add nothing, while trade agreements still raise FDI",
+        "It finds democracy lowers FDI once bilateral investment treaties are controlled"
+      ],
+      "correct": 2,
+      "answer": "Swapping political constraints for ACLP, Polity or Freedom House democracy gives nothing significant. The credibility that matters comes from veto players and trade agreements, not regime type as such.",
+      "explanation": "Büthe and Milner move the credible-commitment argument from domestic institutions to international ones. Like Jensen, they assume the credibility mechanism rather than measure it.",
+      "source": "zotero_library/buthePoliticsForeignDirect2008.md · pp. 747-753"
+    },
+    {
+      "id": "2026-11-13__q06",
+      "kind": "synthesis",
+      "format": "short",
+      "topics": [
+        "Taxation_and_Fiscal_Contract",
+        "FDI",
+        "Capital_Mobility_and_Policy_Autonomy",
+        "Globalization_Backlash",
+        "Nationalism_and_Identity",
+        "International_Institutions"
+      ],
+      "citekeys": [
+        "kolstadCitizensPreferencesTaxation2021",
+        "ballard-rosaFootlooseCapitalLand2026",
+        "gelepithisPoliticsTaxingMultinational2022"
+      ],
+      "paper": "Kolstad et al. (2021) / Ballard-Rosa and Ditmore (2026) / Gelepithis and Hearson (2022)",
+      "citation": "Kolstad et al. 2021. \"Citizens' Preferences for Taxation of Internationally Mobile Corporations: Evidence from Tanzania.\" Review of Development Economics 25(2). / Ballard-Rosa and Ditmore. 2026. \"Footloose Capital in the Land of America First: Populism, Nationalism and Mass Preferences over Corporate Tax.\" / Gelepithis and Hearson. 2022. \"The Politics of Taxing Multinational Firms in a Digital Age.\" Journal of European Public Policy 29(5).",
+      "prompt": "Optimal tax theory says to tax mobile capital less. What do Kolstad et al. (2021) and Ballard-Rosa and Ditmore (2026) find citizens want instead, and how does Gelepithis and Hearson (2022) show that mood can become policy?",
+      "answer": "In Tanzania, Kolstad et al. find citizens choose the more mobile firm for higher taxes and also want foreign-owned firms taxed more. In the US, Ballard-Rosa and Ditmore find tax avoidance through loopholes sharply raises demand to tax multinationals more. Gelepithis and Hearson show politicians can use a fairness frame to tax digital multinationals once the tax base is immobile consumers, so there is no fear of capital flight.",
+      "points": [
+        "Kolstad et al.: citizens choose the more mobile (and foreign) firm for higher taxes.",
+        "Ballard-Rosa and Ditmore: loophole avoidance sharply raises demand to tax multinationals.",
+        "Gelepithis and Hearson: with an immobile consumer tax base, a fairness frame lets politicians tax multinationals without capital flight."
+      ],
+      "explanation": "Kolstad et al. never check what respondents understood by \"mobile,\" and Ballard-Rosa and Ditmore's loophole attribute bundles the method of avoidance with a very low rate paid.",
+      "source": "zotero_library/kolstadCitizensPreferencesTaxation2021.md · pp. 7-17; zotero_library/ballard-rosaFootlooseCapitalLand2026.md; zotero_library/gelepithisPoliticsTaxingMultinational2022.md · pp. 713-721"
+    },
+    {
+      "id": "2026-11-13__q07",
+      "kind": "synthesis",
+      "format": "short",
+      "topics": [
+        "Emotions_and_Politics",
+        "Partisanship_and_Ideology",
+        "Opinion_Formation_and_Information"
+      ],
+      "citekeys": [
+        "mehlhaffWhereMotivatedReasoning2024",
+        "AnxietyEnthusiasmVote"
+      ],
+      "paper": "Mehlhaff et al. (2024) / Marcus and MacKuen (1993)",
+      "citation": "Mehlhaff et al. 2024. \"Where Motivated Reasoning Withers and Looms Large: Fear and Partisan Reactions to the COVID-19 Pandemic.\" AJPS 68(1). / Marcus, G. and MacKuen, M. 1993. \"Anxiety, Enthusiasm, and the Vote.\" APSR 87(3).",
+      "prompt": "Mehlhaff et al. (2024) test affective intelligence theory with fear of COVID-19 in 2020. Which parts of Marcus and MacKuen's (1993) argument hold up, and which weakens?",
+      "answer": "Fearful Republicans supported mitigation policies at rates close to Democrats, rated the CDC higher and Trump lower, and knew more facts. So anxiety still weakens partisan reasoning and raises learning. The vote effect is weak: the most fearful Republicans still voted about 65% Trump, while independents moved much more. Under strong polarization, anxiety does little to move partisans' votes.",
+      "points": [
+        "Fearful Republicans backed mitigation, trusted the CDC more and knew more facts.",
+        "So anxiety still weakens partisan reasoning and raises learning.",
+        "But it barely moved Republicans' votes (about 65% still Trump), unlike independents."
+      ],
+      "explanation": "The fear item asks about concern over getting seriously ill, which is partly a risk belief rather than an emotion, and the design is observational.",
+      "source": "zotero_library/mehlhaffWhereMotivatedReasoning2024.md · pp. 7-20"
+    },
+    {
+      "id": "2026-11-13__q08",
+      "kind": "evidence",
+      "format": "short",
+      "topics": [
+        "Foreign_Aid",
+        "Resource_Curse_and_Rentier_States",
+        "Democratization_and_Regimes"
+      ],
+      "citekeys": [
+        "bermeoAidNotOil2016"
+      ],
+      "paper": "Bermeo (2016)",
+      "citation": "Bermeo, S. 2016. \"Aid Is Not Oil.\" International Organization 70(1).",
+      "prompt": "Bermeo explains aid's Cold War effect by donors choosing how fungible aid is. What does her evidence actually observe, and what other stories fit the same pattern?",
+      "answer": "Aid's composition is never observed. She sees only that aid's coefficient on democratic change shifts after the Cold War while oil's does not, and infers less fungible aid. The same break fits post-1990 political conditionality, the model's own selection effect (recipients that need the most fungible aid drop out of aid deals), or democracy assistance.",
+      "points": [
+        "Aid's composition (fungible vs nonfungible) is never measured.",
+        "Fungibility is inferred from aid's coefficient changing after the Cold War while oil's does not.",
+        "Conditionality, selection of recipients out of aid, or democracy assistance fit the same break."
+      ],
+      "explanation": "Carnegie and Marinov (2017) point to conditionality, not fungibility, as the post-Cold War channel.",
+      "source": "zotero_library/bermeoAidNotOil2016.md · pp. 12-17"
+    },
+    {
+      "id": "2026-11-13__q09",
+      "kind": "evidence",
+      "format": "mc",
+      "topics": [
+        "Accountability_and_Corruption",
+        "Taxation_and_Fiscal_Contract",
+        "Resource_Curse_and_Rentier_States"
+      ],
+      "citekeys": [
+        "delacuestaOwningItAccountability2022"
+      ],
+      "paper": "de la Cuesta et al. (2022)",
+      "citation": "de la Cuesta et al. 2022. \"Owning It: Accountability and Citizens' Ownership over Oil, Aid, and Taxes.\" Journal of Politics 84(1).",
+      "prompt": "In de la Cuesta et al.'s Kampala lab games, citizens could pay to cut the leader's payoff. Why were the rounds one-shot?",
+      "options": [
+        "So leaders could not learn each citizen's acceptance threshold",
+        "So punishment could only be expressive, not a strategy to change the leader's future behavior",
+        "So the endowment effect could not build up across rounds",
+        "So each round could test a different revenue source on new subjects"
+      ],
+      "correct": 1,
+      "answer": "With one-shot rounds, punishing the leader cannot improve future transfers, so any punishment is purely expressive.",
+      "explanation": "This matches the theory: ownership raises expectations, a bigger gap with performance gives larger expressive benefits from punishing, and that helps overcome the free-rider problem.",
+      "source": "zotero_library/delacuestaOwningItAccountability2022.md · pp. 306-310"
+    },
+    {
+      "id": "2026-11-13__q10",
+      "kind": "evidence",
+      "format": "mc",
+      "topics": [
+        "Nationalism_and_Identity",
+        "Distributive_Politics"
+      ],
+      "citekeys": [
+        "posnerPoliticalSalienceCultural2004"
+      ],
+      "paper": "Posner (2004)",
+      "citation": "Posner, D. 2004. \"The Political Salience of Cultural Difference.\" APSR 98(4).",
+      "prompt": "Posner rules out several alternatives to group size. Which national difference can his Malawi country dummy NOT separate from group size?",
+      "options": [
+        "Different electoral rules in Zambia and Malawi",
+        "A bigger missionary-education gap between the groups in Malawi",
+        "Banda's long Chewa-ization of Malawi and discrimination against Tumbukas",
+        "Zambia being months from an election during fieldwork"
+      ],
+      "correct": 2,
+      "answer": "Banda's 30-year Chewa project. The country dummy absorbs everything national, and the attitude gap could be a legacy of that discrimination whatever the group sizes.",
+      "explanation": "Electoral rules are similar on both sides, the education gap is about the same in both countries, and Zambia's upcoming election biases against the finding. Posner reframes Banda as choosing this cleavage because of group size, but both accounts predict the same data.",
+      "source": "zotero_library/posnerPoliticalSalienceCultural2004.md · pp. 535-537"
+    },
+    {
+      "id": "2026-11-13__q11",
+      "kind": "concept",
+      "format": "short",
+      "topics": [
+        "FDI",
+        "Firms_and_Business_Power"
+      ],
+      "citekeys": [
+        "kobrinTestingBargainingHypothesis1987"
+      ],
+      "paper": "Kobrin (1987)",
+      "citation": "Kobrin, S. 1987. \"Testing the Bargaining Hypothesis in the Manufacturing Sector in Developing Countries.\" International Organization 41(4).",
+      "prompt": "What is the obsolescing bargain, and what did Kobrin (1987) find about it in manufacturing?",
+      "answer": "Before investing, the firm holds the bargaining power. Once its capital is sunk in the host country, power shifts to the government, which can change the terms. Across U.S. manufacturing subsidiaries, parent ownership rises with R&D and advertising intensity, with technology the strongest factor. So the bargain obsolesces slowly where technology is intensive and production globally integrated, and faster in low-tech, locally oriented industries.",
+      "points": [
+        "Before investing the firm holds the power; once capital is sunk, power shifts to the host.",
+        "Kobrin: parent ownership rises with technology (R&D) and advertising intensity.",
+        "So obsolescence is slow in high-tech, globally integrated manufacturing."
+      ],
+      "explanation": "The idea comes from Vernon (1971) and extractive industries. Kobrin's test is cross-sectional, so obsolescence over time is inferred, not observed.",
+      "source": "Concepts/Obsolescing bargain.md; zotero_library/kobrinTestingBargainingHypothesis1987.md · pp. 609-615, 627-631"
+    },
+    {
+      "id": "2026-11-13__q12",
+      "kind": "concept",
+      "format": "short",
+      "topics": [
+        "State_and_Market"
+      ],
+      "citekeys": [
+        "polanyiGreatTransformationPolitical2010"
+      ],
+      "paper": "Polanyi et al. (2010)",
+      "citation": "Polanyi et al. 2010. \"The Great Transformation: The Political and Economic Origins of Our Time.\"",
+      "prompt": "What are the two sides of Polanyi's double movement, and who carries each?",
+      "answer": "Economic liberalism, carried by the trading classes, seeks a self-regulating market through laissez-faire and free trade. Social protection, carried by those harmed by the market (mainly but not only the working and landed classes), seeks to conserve man, nature and productive organization through protective legislation and associations.",
+      "points": [
+        "Economic liberalism: the trading classes push for a self-regulating market (laissez-faire, free trade).",
+        "Social protection: those harmed by the market use protective laws and associations to conserve man, nature and productive organization."
+      ],
+      "explanation": "These are the two organizing principles of market society in Polanyi's account.",
+      "source": "Concepts/Double movement.md · Ch. 11"
+    }
+  ]
+}
